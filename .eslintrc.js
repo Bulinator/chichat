@@ -20,5 +20,6 @@ module.exports = {
         "no-bitwise": [0],
         "import/prefer-default-export": [0],
         "react/prefer-stateless-function": [0],
+        "no-underscore-danggler": [0],
     },
 };
