@@ -1,10 +1,13 @@
+import { _ } from 'lodash';
 import Sequelize from 'sequelize';
+import faker from 'faker';
 
 // Init DB
 const db = new Sequelize('chichat', null, null, {
   dialect: 'sqlite',
   storage: './chichat.sqlite',
   logging: false,
+  operatorsAliases: false,
 });
 
 // define group model
@@ -38,6 +41,44 @@ MessageModel.belongsTo(GroupModel);
 
 // groups have multiple users
 GroupModel.belongsToMany(UserModel, { through: 'GroupUser' });
+
+// create fake starter data
+const GROUPS = 4;
+const USERS_PER_GROUP = 5;
+const MESSAGES_PER_USER = 5;
+
+db.sync({ force: true }).then(() => _.times(GROUPS, () =>
+  GroupModel.create({
+    name: faker.lorem.word(3),
+  }).then(group => _.times(USERS_PER_GROUP, () => {
+    const password = faker.internet.password();
+    return group.createUser({
+      email: faker.internet.userName(),
+      password,
+    }).then((user) => {
+      console.log(
+        '{email, username, password}',
+        `{${user.email}, ${user.username}, ${user.password}}`,
+      );
+      _.times(MESSAGES_PER_USER, () => MessageModel.create({
+        userId: user.id,
+        groupId: group.id,
+        text: faker.lorem.sentences(3),
+      }));
+      return user;
+    });
+  })).then((userPromises) => {
+    // make users friends with all users in the group
+    Promise.all(userPromises).then((users) => {
+      _.each(users, (current, i) => {
+        _.each(users, (user, j) => {
+          if (i !== j) {
+            current.addFriend(user);
+          }
+        });
+      });
+    });
+  })));
 
 const Group = db.model.group;
 const Message = db.model.message;
