@@ -19,5 +19,6 @@ module.exports = {
         "react/no-multi-comp": [0],
         "no-bitwise": [0],
         "import/prefer-default-export": [0],
+        "react/prefer-stateless-function": [0],
     },
 };
