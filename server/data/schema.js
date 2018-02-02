@@ -14,7 +14,7 @@ export const Schema = [`
   type User {
     id: Int! # unique id for user
     email: String! # unique email per users
-    username: String! # name show to others users
+    username: String # name show to others users
     messages: [Message] # message sent by user
     groups: [Group] # groups the user belongs to
     friends: [User] # users's friends/contact

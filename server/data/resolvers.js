@@ -47,6 +47,12 @@ export const Resolvers = {
         order: [['createdAt', 'DESC']],
       });
     },
+    groups(user) {
+      return user.getGroups();
+    },
+    friends(user) {
+      return user.getFriends();
+    },
   },
 };
 
