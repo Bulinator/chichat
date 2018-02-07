@@ -36,5 +36,5 @@ app.use('/graphiql', graphiqlExpress({
 const graphQLServer = createServer(app);
 
 graphQLServer.listen(GRAPHQL_PORT, () => {
-  console.log(`Chichat server is running on http://localhost:${GRAPHQL_PORT}/graphql`)
+  console.log(`Chichat server is running on http://localhost:${GRAPHQL_PORT}/graphql`);
 });
