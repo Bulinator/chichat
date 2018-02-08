@@ -7,7 +7,7 @@ import { composeWithDevTools } from 'redux-devtools-extension/developmentOnly';
 import ApolloClient, { createNetworkInterface } from 'apollo-client';
 import { navigationReducer } from '../navigation';
 
-const networkInterface = createNetworkInterface({ uri: 'http://192.168.1.8:8080/graphql' });
+const networkInterface = createNetworkInterface({ uri: 'http://192.168.1.8:8081/graphql' });
 
 export const client = new ApolloClient({ networkInterface });
 

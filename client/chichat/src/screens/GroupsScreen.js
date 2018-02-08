@@ -6,16 +6,23 @@ import {
   Text,
   FlatList,
   TouchableHighlight,
-  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import { Icon } from 'react-native-elements';
+import { graphql } from 'react-apollo';
 import Color from '../constants/Color';
+import { Spinner } from '../components/common';
+
+import { USER_QUERY } from '../graphql/User.query';
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Color.backgroundColor,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   groupContainer: {
     flex: 1,
@@ -94,10 +101,20 @@ class GroupsScreen extends Component {
   renderItem = ({ item }) => <Group group={item} goToMessages={this.goToMessages} />;
 
   render() {
+    const { loading, user } = this.props;
+
+    if (loading) {
+      return (
+        <View style={styles.loadingContainer}>
+          <Spinner />
+        </View>
+      );
+    }
+
     return (
       <View style={styles.container}>
         <FlatList
-          data={fakeData()}
+          data={user.groups}
           keyExtractor={this.keyExtractor}
           renderItem={this.renderItem}
         />
@@ -110,6 +127,22 @@ GroupsScreen.propTypes = {
   navigation: PropTypes.shape({
     navigate: PropTypes.func,
   }),
+  loading: PropTypes.bool,
+  user: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    email: PropTypes.string.isRequired,
+    groups: PropTypes.arrayOf(PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      name: PropTypes.string.isRequired,
+    })),
+  }),
 };
 
-export default GroupsScreen;
+const userQuery = graphql(USER_QUERY, {
+  options: () => ({ variables: { id: 1 } }), // fake user for now
+  props: ({ data: { loading, user } }) => ({
+    loading, user,
+  }),
+});
+
+export default userQuery(GroupsScreen);

@@ -2,6 +2,7 @@ import React, { PureComponent } from 'react';
 import { Text, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import moment from 'moment';
+import Color from '../constants/Color';
 
 const styles = StyleSheet.create({
   container: {
@@ -24,7 +25,7 @@ const styles = StyleSheet.create({
     },
   },
   myMessage: {
-    backgroundColor: '#dcf8c6',
+    backgroundColor: Color.msgOutGoingBackgroundColor,
   },
   messageUsername: {
     color: 'red',
@@ -32,7 +33,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   messageTime: {
-    color: '#8c8c8c',
+    color: Color.msgTime,
     fontSize: 11,
     textAlign: 'right',
   },
@@ -44,7 +45,7 @@ const styles = StyleSheet.create({
 class Message extends PureComponent {
   render() {
     const { color, message, isCurrentUser } = this.props;
-    console.log(isCurrentUser);
+
     return (
       <View key={message.id} style={styles.container}>
         {isCurrentUser ?
@@ -68,7 +69,7 @@ class Message extends PureComponent {
 }
 
 Message.propTypes = {
-  color: PropTypes.string.isRequired,
+  color: PropTypes.string,
   message: PropTypes.shape({
     createdAt: PropTypes.string.isRequired,
     from: PropTypes.shape({
