@@ -91,7 +91,6 @@ class MessagesScreen extends Component {
   }
 
   send = (text) => {
-    console.log('text send: ', text);
     this.props.createMessage({
       groupId: this.props.navigation.state.params.groupId,
       userId: 1, // faking the user for now

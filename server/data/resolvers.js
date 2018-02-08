@@ -23,6 +23,7 @@ export const Resolvers = {
   },
   Mutation: {
     createMessage(_, { text, userId, groupId }) {
+      console.log('Message received: ', `UID [${userId}] for GUID [${groupId}]: ${text}`);
       return Message.create({
         text,
         userId,
