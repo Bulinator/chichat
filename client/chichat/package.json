@@ -5,7 +5,6 @@
     "@expo/vector-icons": "^6.2.2",
     "apollo-client": "1.9.0",
     "expo": "^25.0.0",
-    "graphql": "^0.13.0-rc.1",
     "graphql-tag": "^2.7.0",
     "lodash": "^4.17.5",
     "moment": "^2.20.1",

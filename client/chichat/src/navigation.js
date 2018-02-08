@@ -10,6 +10,7 @@ import {
 
 import Color from '../src/constants/Color';
 import GroupsScreen from '../src/screens/GroupsScreen';
+import MessagesScreen from '../src/screens/MessagesScreen';
 
 const styles = StyleSheet.create({
   container: {
@@ -53,6 +54,9 @@ const MainScreenNavigator = TabNavigator({
 // Navigation stack for our entire application
 const AppNavigator = StackNavigator({
   Main: { screen: MainScreenNavigator },
+  Messages: { screen: MessagesScreen },
+}, {
+  mode: 'modal',
 });
 
 // reducer initialization code
