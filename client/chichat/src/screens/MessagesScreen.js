@@ -1,6 +1,12 @@
 import _ from 'lodash';
 import React, { Component } from 'react';
-import { StyleSheet, View, Text, FlatList } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  FlatList,
+  Platform,
+  KeyboardAvoidingView,
+} from 'react-native';
 import PropTypes from 'prop-types';
 import randomColor from 'randomcolor';
 import { graphql, compose } from 'react-apollo';
@@ -9,7 +15,8 @@ import MessageInput from '../components/MessageInput';
 import Color from '../constants/Color';
 import { Spinner } from '../components/common';
 
-import { GROUP_QUERY } from '../graphql/Group.query';
+import GROUP_QUERY from '../graphql/Group.query';
+import CREATE_MESSAGE_MUTATION from '../graphql/CreateMessage.mutation';
 
 const styles = StyleSheet.create({
   container: {
@@ -40,6 +47,11 @@ const fakeData = () => _.times(100, i => ({
   },
 }));
 
+function isDuplicateMessage(newMessage, existingMessages) {
+  return newMessage.id !== null &&
+    existingMessages.some(message => newMessage.id === message.id);
+}
+
 class MessagesScreen extends Component {
   static navigationOptions = ({ navigation }) => {
     const { state } = navigation;
@@ -51,6 +63,7 @@ class MessagesScreen extends Component {
       },
       headerStyle: {
         backgroundColor: Color.tabBackgroundColor,
+        marginTop: (Platform.OS === 'ios') ? 0 : 24,
       },
       headerTintColor: Color.txtDefaultColor,
     };
@@ -78,7 +91,12 @@ class MessagesScreen extends Component {
   }
 
   send = (text) => {
-    console.log('to do: ', text);
+    console.log('text send: ', text);
+    this.props.createMessage({
+      groupId: this.props.navigation.state.params.groupId,
+      userId: 1, // faking the user for now
+      text,
+    });
   }
 
   keyExtractor = item => item.id;
@@ -104,18 +122,33 @@ class MessagesScreen extends Component {
     //console.log(this.props.group);
     return (
       <View style={styles.container}>
-        <FlatList
-          data={group.messages.slice().reverse()}
-          keyExtractor={this.keyExtractor}
-          renderItem={this.renderItem}
-        />
-        <MessageInput send={this.send} />
+        <KeyboardAvoidingView
+          behavior="position"
+          contentContainerStyle={styles.container}
+          keyboardVerticalOffset={74}
+          style={styles.container}
+        >
+          <FlatList
+            data={group.messages.slice().reverse()}
+            keyExtractor={this.keyExtractor}
+            renderItem={this.renderItem}
+          />
+          <MessageInput send={this.send} />
+        </KeyboardAvoidingView>
       </View>
     );
   }
 }
 
 MessagesScreen.propTypes = {
+  createMessage: PropTypes.func,
+  navigation: PropTypes.shape({
+    state: PropTypes.shape({
+      params: PropTypes.shape({
+        groupId: PropTypes.number,
+      }),
+    }),
+  }),
   group: PropTypes.shape({
     messages: PropTypes.array,
     users: PropTypes.array,
@@ -134,5 +167,41 @@ const groupQuery = graphql(GROUP_QUERY, {
   }),
 });
 
+const createMessageMutation = graphql(CREATE_MESSAGE_MUTATION, {
+  props: ({ mutate }) => ({
+    createMessage: ({ text, userId, groupId }) =>
+      mutate({
+        variables: { text, userId, groupId },
+        update: (store, { data: { createMessage } }) => {
+          // Read data from our cache for this query
+          const data = store.readQuery({
+            query: GROUP_QUERY,
+            variables: {
+              groupId,
+            },
+          });
 
-export default compose(groupQuery)(MessagesScreen);
+          if (isDuplicateMessage(createMessage, data.group.messages)) {
+            return data;
+          }
+
+          // Add our message from the mutation to the end.
+          data.group.messages.unshift(createMessage);
+
+          // Write data back to the cache
+          store.writeQuery({
+            query: GROUP_QUERY,
+            variables: {
+              groupId,
+            },
+            data,
+          });
+        },
+      }),
+  }),
+});
+
+export default compose(
+  groupQuery,
+  createMessageMutation,
+)(MessagesScreen);

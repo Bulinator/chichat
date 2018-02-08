@@ -6,6 +6,7 @@ import {
   Text,
   FlatList,
   TouchableHighlight,
+  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { graphql } from 'react-apollo';
@@ -78,6 +79,7 @@ class GroupsScreen extends Component {
     title: 'ChiChat',
     headerStyle: {
       backgroundColor: Color.tabBackgroundColor,
+      marginTop: (Platform.OS === 'ios') ? 0 : 24,
     },
     headerTitleStyle: {
       color: Color.txtDefaultColor,

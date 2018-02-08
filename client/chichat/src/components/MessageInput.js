@@ -3,7 +3,9 @@ import {
   StyleSheet,
   View,
   TextInput,
+  Platform,
 } from 'react-native';
+import PropTypes from 'prop-types';
 import { Icon } from 'react-native-elements';
 
 const styles = StyleSheet.create({
@@ -19,7 +21,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingRight: 2,
     paddingVertical: 10,
-    marginBottom: 10,
+    ...Platform.select({
+      ios: {
+        marginBottom: 10,
+      },
+      android: {
+        marginBottom: 2,
+      },
+    }),
   },
   input: {
     backgroundColor: 'white',
@@ -53,13 +62,28 @@ const sendButton = send => (
 );
 
 class MessageInput extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {};
+    this.send = this.send.bind(this);
+  }
+
+  send() {
+    this.props.send(this.state.text);
+    this.textInput.clear();
+    this.textInput.blur();
+  }
+
   render() {
     return (
       <View style={styles.container}>
         <View style={styles.inputContainer}>
           <TextInput
-            placeholder="Send message"
+            ref={(ref) => { this.textInput = ref; }}
+            onChangeText={text => this.setState({ text })}
+            placeholder="Say something..."
             style={styles.input}
+            underlineColorAndroid="transparent"
           />
         </View>
         <View style={styles.sendButtonContainer}>
@@ -69,5 +93,9 @@ class MessageInput extends Component {
     );
   }
 }
+
+MessageInput.propTypes = {
+  send: PropTypes.func.isRequired,
+};
 
 export default MessageInput;
