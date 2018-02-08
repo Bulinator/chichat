@@ -33,6 +33,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   messageTime: {
+    marginTop: 5,
     color: Color.msgTime,
     fontSize: 11,
     textAlign: 'right',

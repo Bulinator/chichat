@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import randomColor from 'randomcolor';
 import { graphql, compose } from 'react-apollo';
 import Message from '../components/Message';
+import MessageInput from '../components/MessageInput';
 import Color from '../constants/Color';
 import { Spinner } from '../components/common';
 
@@ -58,6 +59,7 @@ class MessagesScreen extends Component {
   constructor(props) {
     super(props);
     this.state = { usernameColors: {} };
+    this.send = this.send.bind(this);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -73,6 +75,10 @@ class MessagesScreen extends Component {
       // update user's state color
       this.setState({ usernameColors });
     }
+  }
+
+  send = (text) => {
+    console.log('to do: ', text);
   }
 
   keyExtractor = item => item.id;
@@ -103,6 +109,7 @@ class MessagesScreen extends Component {
           keyExtractor={this.keyExtractor}
           renderItem={this.renderItem}
         />
+        <MessageInput send={this.send} />
       </View>
     );
   }
