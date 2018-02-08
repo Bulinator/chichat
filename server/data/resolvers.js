@@ -21,6 +21,15 @@ export const Resolvers = {
       return User.findOne({ where: args });
     },
   },
+  Mutation: {
+    createMessage(_, { text, userId, groupId }) {
+      return Message.create({
+        text,
+        userId,
+        groupId,
+      });
+    },
+  },
   Group: {
     users(group) {
       return group.getUsers();
