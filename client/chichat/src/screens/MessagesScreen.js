@@ -6,10 +6,14 @@ import {
   FlatList,
   Platform,
   KeyboardAvoidingView,
+  Text,
+  TouchableOpacity,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import randomColor from 'randomcolor';
 import { graphql, compose } from 'react-apollo';
+import { Icon } from 'react-native-elements';
+import randomColor from 'randomcolor';
+
 import Message from '../components/Message';
 import MessageInput from '../components/MessageInput';
 import Color from '../constants/Color';
@@ -29,6 +33,23 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  titleWrapper: {
+    alignItems: 'center',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    backgroundColor: 'black',
+  },
+  title: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  titleImage: {
+    marginRight: 6,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
   },
 });
 
@@ -54,18 +75,31 @@ function isDuplicateMessage(newMessage, existingMessages) {
 
 class MessagesScreen extends Component {
   static navigationOptions = ({ navigation }) => {
-    const { state } = navigation;
+    const { state, navigate } = navigation;
+    const goToGroupDetails = navigate.bind(this, 'GroupDetails', {
+      id: state.params.groupId,
+      title: state.params.title,
+    });
+
     return {
       title: state.params.title,
-      headerBackTitleStyle: {
-        color: Color.txtDefaultColor,
-        paddingLeft: 5,
-      },
       headerStyle: {
         backgroundColor: Color.tabBackgroundColor,
         marginTop: (Platform.OS === 'ios') ? 0 : 24,
+        paddingRight: 8,
+      },
+      headerBackTitleStyle: {
+        color: Color.txtDefaultColor,
       },
       headerTintColor: Color.txtDefaultColor,
+      headerRight:
+        <Icon
+          name="info-circle"
+          color="#fff"
+          type="font-awesome"
+          onPress={goToGroupDetails}
+          size={18}
+        />,
     };
   }
 
@@ -145,6 +179,7 @@ class MessagesScreen extends Component {
 MessagesScreen.propTypes = {
   createMessage: PropTypes.func,
   navigation: PropTypes.shape({
+    navigate: PropTypes.func,
     state: PropTypes.shape({
       params: PropTypes.shape({
         groupId: PropTypes.number,
@@ -161,7 +196,7 @@ MessagesScreen.propTypes = {
 const groupQuery = graphql(GROUP_QUERY, {
   options: ownProps => ({
     variables: {
-      groupId: ownProps.navigation.state.params.groupId,
+      groupId: ownProps.navigation.state.params.groupId, // => buggy here ownProps is empty groupId
     },
   }),
   props: ({ data: { loading, group } }) => ({

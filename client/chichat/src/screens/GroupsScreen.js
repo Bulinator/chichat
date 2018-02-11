@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
+    backgroundColor: Color.bgBackgroundColor,
     borderBottomColor: '#eee',
     borderBottomWidth: 1,
     paddingHorizontal: 12,
@@ -52,8 +52,7 @@ const fakeData = () => _.times(100, i => ({
 class Group extends Component {
   constructor(props) {
     super(props);
-    this.goToMessages = this.props.goToMessages.bind(this);
-    //this.goToNewGroup = this.props.goToNewGroup.bind(this)
+    this.goToMessages = this.props.goToMessages.bind(this, this.props.group);
   }
 
   render() {
@@ -62,7 +61,7 @@ class Group extends Component {
     return (
       <TouchableHighlight key={id} onPress={this.goToMessages}>
         <View style={styles.groupContainer}>
-          <Text style={styles.groupName}>{`${name}`}</Text>
+          <Text style={styles.groupName}>{name}</Text>
         </View>
       </TouchableHighlight>
     );
@@ -104,7 +103,7 @@ class GroupsScreen extends Component {
 
   keyExtractor = item => item.id;
 
-  goToMessages(group) {
+  goToMessages = (group) => {
     const { navigate } = this.props.navigation;
     // groupId and title will attach to
     // props.navigation.state.params in Messages

@@ -25,7 +25,7 @@ const sortObject = o => Object.keys(o).sort().reduce((r, k) => (r[k] = o[k], r),
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Color.msgBackgroundColor,
+    backgroundColor: Color.bgBackgroundColor,
   },
   loadingContainer: {
     justifyContent: 'center',
@@ -52,14 +52,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
+  cellIndex: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'blue',
+  },
   selected: {
     flexDirection: 'row',
   },
 });
 
+/* eslint arrow-body-style: ["error", "as-needed", { "requireReturnForObjectLiteral": true }] */
 const SectionItem = ({ title }) => {
   return (
-    <Text style={{ color: 'red' }}>{title}</Text>
+    <Text style={styles.cellIndex}>{title}</Text>
   );
 };
 
@@ -90,7 +96,7 @@ class Cell extends Component {
     return (
       <View style={styles.cellContainer}>
         <Image
-          style={styles.cellImages}
+          style={styles.cellImage}
           source={{ uri: 'https://www.shareicon.net/data/2016/08/01/640324_logo_512x512.png' }}
         />
         <Text style={styles.cellLabel}>{this.props.item.username}</Text>
@@ -137,6 +143,7 @@ class NewGroupScreen extends Component {
           <Icon
             name="angle-double-right"
             type="font-awesome"
+            color={Color.txtDefaultColor}
             containerStyle={{ marginRight: 10 }}
             onPress={state.params.finalizeGroup}
           /> : null
@@ -235,7 +242,7 @@ class NewGroupScreen extends Component {
         </View>
       );
     }
-    console.log(this.state.friends);
+    // console.log(this.state.friends);
     return (
       <View style={styles.container}>
         {this.state.selected.length ?
@@ -287,7 +294,7 @@ NewGroupScreen.propTypes = {
 };
 
 const userQuery = graphql(USER_QUERY, {
-  options: ownprops => ({ variables: { id: 1 } }), // fake user for now
+  options: ownProps => ({ variables: { id: 1 } }), // fake user for now
   props: ({ data: { loading, user } }) => ({
     loading, user,
   }),

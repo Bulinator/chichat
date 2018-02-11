@@ -31,7 +31,17 @@ export const Resolvers = {
       });
     },
     createGroup(_, { name, userIds, userId }) {
-      console.log('here we go', name);
+      return User.findOne({ where: { id: userId } })
+        .then(user => user.getFriends({ where: { id: { $in: userIds } } })
+          .then(friends => Group.create({
+            name,
+            users: [user, ...friends],
+          })
+            .then(group => group.addUsers([user, ...friends])
+              .then(() => group),
+            ),
+          ),
+        );
     },
     deleteGroup(_, { id }) {
       return Group.find({ where: id })
@@ -39,7 +49,7 @@ export const Resolvers = {
           .then(users => group.removeUsers(users))
           .then(() => Message.destroy({ where: { groupId: group.id } }))
           .then(() => group.destroy()),
-      );
+        );
     },
     leaveGroup(_, { id, userId }) {
       return Group.find({ where: id })

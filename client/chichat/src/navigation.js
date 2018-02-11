@@ -12,6 +12,7 @@ import Color from '../src/constants/Color';
 import GroupsScreen from '../src/screens/GroupsScreen';
 import NewGroupScreen from '../src/screens/NewGroupScreen';
 import FinalizeGroupScreen from '../src/screens/FinalizeGroupScreen';
+import GroupDetailsScreen from '../src/screens/GroupDetailsScreen';
 import MessagesScreen from '../src/screens/MessagesScreen';
 
 const styles = StyleSheet.create({
@@ -59,6 +60,7 @@ const AppNavigator = StackNavigator({
   Messages: { screen: MessagesScreen },
   NewGroup: { screen: NewGroupScreen },
   FinalizeGroup: { screen: FinalizeGroupScreen },
+  GroupDetails: { screen: GroupDetailsScreen },
 }, {
   mode: 'modal',
 });

@@ -16,7 +16,7 @@ const store = createStore(
     apollo: client.reducer(),
     nav: navigationReducer,
   }),
-  {},
+  {}, // initial state
   composeWithDevTools(applyMiddleware(client.middleware())),
 );
 
