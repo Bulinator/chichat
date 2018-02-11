@@ -9,7 +9,8 @@ import {
   Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import { graphql } from 'react-apollo';
+import { graphql, compose } from 'react-apollo';
+import { Icon } from 'react-native-elements';
 import Color from '../constants/Color';
 import { Spinner } from '../components/common';
 
@@ -51,11 +52,13 @@ const fakeData = () => _.times(100, i => ({
 class Group extends Component {
   constructor(props) {
     super(props);
-    this.goToMessages = this.props.goToMessages.bind(this, this.props.group);
+    this.goToMessages = this.props.goToMessages.bind(this);
+    //this.goToNewGroup = this.props.goToNewGroup.bind(this)
   }
 
   render() {
     const { id, name } = this.props.group;
+
     return (
       <TouchableHighlight key={id} onPress={this.goToMessages}>
         <View style={styles.groupContainer}>
@@ -80,10 +83,18 @@ class GroupsScreen extends Component {
     headerStyle: {
       backgroundColor: Color.tabBackgroundColor,
       marginTop: (Platform.OS === 'ios') ? 0 : 24,
+      paddingRight: 8,
     },
     headerTitleStyle: {
       color: Color.txtDefaultColor,
     },
+    headerRight:
+      <Icon
+        name="plus-square-o"
+        color="#fff"
+        type="font-awesome"
+        onPress={() => navigation.navigate('NewGroup')}
+      />,
   });
 
   constructor(props) {
@@ -109,6 +120,14 @@ class GroupsScreen extends Component {
       return (
         <View style={styles.loadingContainer}>
           <Spinner />
+        </View>
+      );
+    }
+
+    if (user && !user.groups.length) {
+      return (
+        <View style={styles.container}>
+          <Text>You do not have any groups.</Text>
         </View>
       );
     }
@@ -147,4 +166,6 @@ const userQuery = graphql(USER_QUERY, {
   }),
 });
 
-export default userQuery(GroupsScreen);
+const componentWithData = compose(userQuery)(GroupsScreen);
+
+export default componentWithData;

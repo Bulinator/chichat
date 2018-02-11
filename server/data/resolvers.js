@@ -30,6 +30,35 @@ export const Resolvers = {
         groupId,
       });
     },
+    createGroup(_, { name, userIds, userId }) {
+      console.log('here we go', name);
+    },
+    deleteGroup(_, { id }) {
+      return Group.find({ where: id })
+        .then(group => group.getUsers()
+          .then(users => group.removeUsers(users))
+          .then(() => Message.destroy({ where: { groupId: group.id } }))
+          .then(() => group.destroy()),
+      );
+    },
+    leaveGroup(_, { id, userId }) {
+      return Group.find({ where: id })
+        .then(group => group.removeUser(userId)
+          .then(() => group.getUser())
+          .then((users) => {
+            // if last user leave group, thus remove group!
+            if (!users.length) {
+              group.destroy();
+            }
+            // return group ip left
+            return { id };
+          }),
+        );
+    },
+    updateGroup(_, { id, name }) {
+      return Group.findOne({ where: id })
+        .then(group => group.update({ name }));
+    },
   },
   Group: {
     users(group) {

@@ -10,6 +10,8 @@ import {
 
 import Color from '../src/constants/Color';
 import GroupsScreen from '../src/screens/GroupsScreen';
+import NewGroupScreen from '../src/screens/NewGroupScreen';
+import FinalizeGroupScreen from '../src/screens/FinalizeGroupScreen';
 import MessagesScreen from '../src/screens/MessagesScreen';
 
 const styles = StyleSheet.create({
@@ -55,6 +57,8 @@ const MainScreenNavigator = TabNavigator({
 const AppNavigator = StackNavigator({
   Main: { screen: MainScreenNavigator },
   Messages: { screen: MessagesScreen },
+  NewGroup: { screen: NewGroupScreen },
+  FinalizeGroup: { screen: FinalizeGroupScreen },
 }, {
   mode: 'modal',
 });
