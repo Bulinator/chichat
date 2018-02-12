@@ -15,6 +15,7 @@ import update from 'immutability-helper';
 import { Buffer } from 'buffer';
 import { Icon } from 'react-native-elements';
 import randomColor from 'randomcolor';
+import moment from 'moment';
 
 import Message from '../components/Message';
 import MessageInput from '../components/MessageInput';
@@ -22,6 +23,7 @@ import Color from '../constants/Color';
 import { Spinner } from '../components/common';
 
 import GROUP_QUERY from '../graphql/Group.query';
+import USER_QUERY from '../graphql/User.query';
 import CREATE_MESSAGE_MUTATION from '../graphql/CreateMessage.mutation';
 
 const styles = StyleSheet.create({
@@ -265,6 +267,27 @@ const groupQuery = graphql(GROUP_QUERY, {
   }),
 });
 
+// In update, we first retrieve the existing data for the query we want to update (GROUP_QUERY)
+// along with the specific variables we passed to that query.
+// This data comes to us from our Redux store of Apollo data.
+// We check to see if the new Message returned from createMessage already exists
+// (in case of race conditions down the line),
+// and then update the previous query result by sticking the new message in front.
+// We then use this modified data object and rewrite the results
+// to the Apollo store with store.writeQuery, being sure to pass all the variables
+// associated with our query. This will force props to change reference and
+// the component to rerender.
+
+// update will currently only update the query after the mutation succeeds
+// and a response is sent back on the server. But we don’t want to wait till
+// the server returns data...we crave instant gratification!
+// If a user with shoddy internet tried to send a message and it didn’t show up right away,
+// they’d probably try and send the message again and again and end up
+// sending the message multiple times… and then they’d yell at customer support!
+// Optimistic UI is our weapon for protecting customer support.
+// We know the shape of the data we expect to receive from the server,
+// so why not fake it until we get a response? react-apollo lets us accomplish this
+// by adding an optimisticResponse parameter to mutate
 const createMessageMutation = graphql(CREATE_MESSAGE_MUTATION, {
   props: ({ mutate }) => ({
     createMessage: ({ text, userId, groupId }) =>
@@ -319,6 +342,34 @@ const createMessageMutation = graphql(CREATE_MESSAGE_MUTATION, {
             },
             data,
           });
+
+          const userData = store.readQuery({
+            query: USER_QUERY,
+            variables: {
+              id: 1, // fake for now
+            },
+          });
+
+          const updatedGroup = _.find(userData.user.groups, { id: groupId });
+          if (!updatedGroup.messages.edges.length ||
+          moment(updatedGroup.messages.edges[0].node.createdAt)
+            .isBefore(moment(createMessage.createdAt))) {
+            // update the latest message
+            updatedGroup.messages.edges[0] = {
+              __typename: 'MessageEdge',
+              node: createMessage,
+              cursor: Buffer.from(createMessage.id.toString()).toString('base64'),
+            };
+
+            // Write query to our cache
+            store.writeQuery({
+              query: USER_QUERY,
+              variables: {
+                id: 1, // fake user for now
+              },
+              data: userData,
+            });
+          }
         },
       }),
   }),
