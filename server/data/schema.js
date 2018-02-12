@@ -2,12 +2,28 @@ export const Schema = [`
   # custom scalar (date isn't a default scalar in graphQL)
   scalar Date
 
+  type MessageConnection {
+    edges: [MessageEdge]
+    pageInfo: PageInfo!
+  }
+
+  type MessageEdge {
+    cursor: String!
+    node: Message!
+  }
+
+  type PageInfo {
+    hasNextPage: Boolean!
+    hasPreviousPage: Boolean!
+  }
+
   # group chat entity
   type Group {
     id: Int! # unique id for the group
     name: String! # name of the group
     users: [User]! # users in the group
-    messages: [Message] # messages sent to the group
+    # messages: [Message] # messages sent to the group
+    messages(first: Int, after: String, last: Int, before: String): MessageConnection
   }
 
   # user entity
