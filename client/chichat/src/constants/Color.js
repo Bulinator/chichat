@@ -9,6 +9,9 @@ export default {
   msgTime: '#8C8C8C',
   txtDefaultColor: '#FFF',
   subTxtColor: '#777',
+  darkTxtColor: '#282828',
   inputBorderColor: '#DBDBDB',
   activeTintColor: '#25D366',
+  warningColor: '#FABE58',
+  dangerColor: '#F22613',
 };

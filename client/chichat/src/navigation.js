@@ -48,6 +48,7 @@ const MainScreenNavigator = TabNavigator({
     inactiveTintColor: Color.txtDefaultColor,
     iconStyle: { width: 24 },
   },
+  animated: false,
   tabBarPosition: 'bottom',
   lazyLoad: true,
   lazy: true,

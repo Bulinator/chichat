@@ -44,12 +44,14 @@ export const Resolvers = {
         );
     },
     deleteGroup(_, { id }) {
+      console.log('delete: ', id);
       return Group.find({ where: id })
         .then(group => group.getUsers()
           .then(users => group.removeUsers(users))
           .then(() => Message.destroy({ where: { groupId: group.id } }))
-          .then(() => group.destroy()),
-        );
+          .then(() => group.destroy()
+        ),
+      );
     },
     leaveGroup(_, { id, userId }) {
       return Group.find({ where: id })

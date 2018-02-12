@@ -134,27 +134,6 @@ class FinalizeGroupScreen extends Component {
     }
   }
 
-  create() {
-    const { createGroup } = this.props;
-    console.log(_.map(this.state.selected, 'id'));
-    createGroup({
-      name: this.state.name,
-      userId: 1, // fake for now until auth
-      userIds: _.map(this.state.selected, 'id'),
-    }).then((result) => {
-      console.log('result finalize:: ', result);
-      this.props.navigation.dispatch(goToNewGroup(result.data.createGroup));
-    }).catch((error) => {
-      Alert.alert(
-        'Error creating a new group',
-        error.message,
-        [
-          { text: 'OK', onPress: () => {} },
-        ],
-      );
-    });
-  }
-
   pop() {
     this.props.navigation.goBack();
   }
@@ -167,6 +146,28 @@ class FinalizeGroupScreen extends Component {
         selected,
       });
     }
+  }
+
+  create() {
+    const { createGroup } = this.props;
+    //console.log(this.props.createGroup);
+    createGroup({
+      name: this.state.name,
+      userId: 1, // fake for now until auth
+      userIds: _.map(this.state.selected, 'id'), // Invalid value (type: array: ok)
+    }).then((res) => {
+      console.log('result finalize:: ', res);
+      this.props.navigation.dispatch(goToNewGroup(res.data.createGroup));
+    }).catch((error) => {
+      console.warn(error);
+      Alert.alert(
+        'Error creating a new group',
+        error.message,
+        [
+          { text: 'OK', onPress: () => {} },
+        ],
+      );
+    });
   }
 
   refreshNavigation(ready) {
