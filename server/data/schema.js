@@ -68,9 +68,17 @@ export const Schema = [`
     updateGroup(id: Int! name: String!): Group
   }
 
+  # live event subscription
+  type Subscription {
+    # Subscription fires on every message message
+    # for any groups with one of these groupIds
+    messageAdded(userId: Int!, groupIds: [Int]): Message
+  }
+
   schema {
     query: Query
     mutation: Mutation
+    subscription: Subscription
   }
 `];
 
