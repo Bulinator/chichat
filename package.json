@@ -25,12 +25,14 @@
     "buffer": "^5.0.8",
     "express": "^4.16.2",
     "faker": "^4.1.0",
-    "graphql": "0.11.7",
+    "graphql": "0.10.1",
     "graphql-date": "^1.0.3",
     "graphql-server-express": "1.2.0",
+    "graphql-subscriptions": "0.4.4",
     "graphql-tools": "^2.19.0",
     "lodash": "^4.17.4",
-    "sequelize": "^4.32.3",
-    "sqlite3": "^3.1.13"
+    "sequelize": "4.4.2",
+    "sqlite3": "^3.1.13",
+    "subscriptions-transport-ws": "0.8.2"
   }
 }

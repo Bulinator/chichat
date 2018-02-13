@@ -1,3 +1,6 @@
+import { makeExecutableSchema } from 'graphql-tools';
+import { Resolvers } from './resolvers';
+
 export const Schema = [`
   # custom scalar (date isn't a default scalar in graphQL)
   scalar Date
@@ -72,7 +75,8 @@ export const Schema = [`
   type Subscription {
     # Subscription fires on every message message
     # for any groups with one of these groupIds
-    messageAdded(userId: Int!, groupIds: [Int]): Message
+    messageAdded(userId: Int, groupIds: [Int]): Message
+    groupAdded(userId: Int): Group
   }
 
   schema {
@@ -82,4 +86,9 @@ export const Schema = [`
   }
 `];
 
-export default Schema;
+export const executableSchema = makeExecutableSchema({
+  typeDefs: Schema,
+  resolvers: Resolvers,
+});
+
+export default executableSchema;
