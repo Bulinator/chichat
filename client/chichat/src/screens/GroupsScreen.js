@@ -194,7 +194,7 @@ class GroupsScreen extends Component {
   render() {
     const { loading, user, networkStatus } = this.props;
 
-    if (loading) {
+    if (loading || !user) {
       return (
         <View style={styles.loadingContainer}>
           <Spinner />

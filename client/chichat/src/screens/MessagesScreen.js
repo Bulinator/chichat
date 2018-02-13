@@ -74,10 +74,10 @@ const fakeData = () => _.times(100, i => ({
   },
 }));
 
-function isDuplicateMessage(newMessage, existingMessages) {
-  return newMessage.id !== null &&
-    existingMessages.some(message => newMessage.id === message.id);
-}
+// function isDuplicateMessage(newMessage, existingMessages) {
+//  return newMessage.id !== null &&
+//    existingMessages.some(message => newMessage.id === message.id);
+// }
 
 class MessagesScreen extends Component {
   static navigationOptions = ({ navigation }) => {
@@ -132,10 +132,12 @@ class MessagesScreen extends Component {
 
       // we don't resubscribe on changed props
       // because it never happens in our app
+      // If I remove that the duplicate bug is not triggered
       if (!this.subscription) {
         this.subscription = nextProps.subscribeToMore({
           document: MESSAGE_ADDED_SUBSCRIPTION,
           variables: {
+            userId: 1, // fake the user for now
             groupIds: [nextProps.navigation.state.params.groupId],
           },
           updateQuery: (previousResult, { subscriptionData }) => {
@@ -158,24 +160,27 @@ class MessagesScreen extends Component {
         });
       }
 
+
       // update user's state color
       this.setState({ usernameColors });
     }
   }
 
   onEndReached() {
-    console.log('on end reach: to do');
-    if (!this.state.loadingMoreEntries && this.props.group.messages.pageInfo.hasNextPage) {
+    if (!this.state.loadingMoreEntries &&
+      this.props.group.messages.pageInfo.hasNextPage) {
       this.setState({
         loadingMoreEntries: true,
       });
       this.props.loadMoreEntries().then(() => {
-        this.setState({ loadingMoreEntries: false });
+        this.setState({
+          loadingMoreEntries: false,
+        });
       });
     }
   }
 
-  send = (text) => {
+  send(text) {
     this.props.createMessage({
       groupId: this.props.navigation.state.params.groupId,
       userId: 1, // faking the user for now
