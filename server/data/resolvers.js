@@ -69,7 +69,6 @@ export const Resolvers = {
         );
     },
     deleteGroup(_, { id }) {
-      console.log('delete: ', id);
       return Group.find({ where: id })
         .then(group => group.getUsers()
           .then(users => group.removeUsers(users))

@@ -7,6 +7,7 @@ import {
   StackNavigator,
   TabNavigator,
 } from 'react-navigation';
+import { SubscriptionClient } from 'subscriptions-transport-ws';
 
 import Color from '../src/constants/Color';
 import GroupsScreen from '../src/screens/GroupsScreen';
