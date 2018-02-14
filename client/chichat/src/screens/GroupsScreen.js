@@ -84,6 +84,8 @@ const fakeData = () => _.times(100, i => ({
   name: `Group ${i}`,
 }));
 
+// we'll fake signin for now
+let IS_SIGNED_IN = false;
 
 class Group extends Component {
   constructor(props) {
@@ -176,6 +178,15 @@ class GroupsScreen extends Component {
     this.onRefresh = this.onRefresh.bind(this);
   }
 
+  componentDidMount() {
+    console.log('logged: ', IS_SIGNED_IN);
+    if (!IS_SIGNED_IN) {
+      IS_SIGNED_IN = true;
+      const { navigate } = this.props.navigation;
+      navigate('Signin');
+    }
+  }
+
   keyExtractor = item => item.id;
 
   goToMessages = (group) => {
@@ -187,6 +198,7 @@ class GroupsScreen extends Component {
 
   onRefresh() {
     this.props.refetch();
+    // faking unauthorized status
   }
 
   renderItem = ({ item }) => <Group group={item} goToMessages={this.goToMessages} />;
@@ -242,6 +254,7 @@ GroupsScreen.propTypes = {
 };
 
 const userQuery = graphql(USER_QUERY, {
+  skip: ownProps => true, // fake it -- we'll use ownProps with auth
   options: () => ({ variables: { id: 1 } }), // fake user for now
   props: ({ data: { loading, networkStatus, refetch, user } }) => ({
     loading, networkStatus, refetch, user,

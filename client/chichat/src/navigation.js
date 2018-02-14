@@ -18,6 +18,7 @@ import NewGroupScreen from '../src/screens/NewGroupScreen';
 import FinalizeGroupScreen from '../src/screens/FinalizeGroupScreen';
 import GroupDetailsScreen from '../src/screens/GroupDetailsScreen';
 import MessagesScreen from '../src/screens/MessagesScreen';
+import SignInScreen from '../src/screens/SignInScreen';
 
 import { USER_QUERY } from '../src/graphql/User.query';
 import GROUP_ADDED_SUBSCRIPTION from '../src/graphql/GroupAdded.subscription';
@@ -73,6 +74,7 @@ const MainScreenNavigator = TabNavigator({
 // Navigation stack for our entire application
 const AppNavigator = StackNavigator({
   Main: { screen: MainScreenNavigator },
+  Signin: { screen: SignInScreen },
   Messages: { screen: MessagesScreen },
   NewGroup: { screen: NewGroupScreen },
   FinalizeGroup: { screen: FinalizeGroupScreen },
@@ -173,6 +175,7 @@ const mapStateToProps = state => ({
 });
 
 const userQuery = graphql(USER_QUERY, {
+  skip: ownProps => true, // fake it -- we'll use ownProps with auth
   options: () => ({ variables: { id: 1 } }), // fake the user for now
   props: ({ data: { loading, user, subscribeToMore } }) => ({
     loading,

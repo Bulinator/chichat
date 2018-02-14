@@ -78,10 +78,10 @@ export const Resolvers = {
                   return user;
                 }
 
-                return Promise.errors('password incorrect dude');
+                return Promise.reject(new Error('password incorrect dude'));
               });
           }
-          return Promise.errors('email not found');
+          return Promise.reject(new Error('email not found'));
         });
     },
     signup(_, { email, password, username, }, ctx) {
