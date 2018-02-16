@@ -191,9 +191,11 @@ class FinalizeGroupScreen extends Component {
             <View style={styles.inputBorder}>
               <TextInput
                 autofocus
+                autocorrect={false}
                 onChangeText={name => this.setState({ name })}
                 placeholder="Group subject"
                 style={styles.input}
+                underlineColorAndroid="transparent"
               />
             </View>
             <Text style={styles.inputInstructions}>

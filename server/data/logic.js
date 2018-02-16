@@ -95,6 +95,17 @@ export const groupLogic = {
       };
     });
   },
+  lastRead(group, args, ctx) {
+    return getAuthenticatedUser(ctx)
+      .then(user => user.getLastRead({ where: { groupId: group.id } }))
+      .then((lastRead) => {
+        if (lastRead.length) {
+          return lastRead[0];
+        }
+
+        return null;
+      });
+  },
   query(_, { id }, ctx) {
     return getAuthenticatedUser(ctx).then(user => Group.findOne({
       where: { id },
@@ -135,7 +146,7 @@ export const groupLogic = {
   leaveGroup(_, { id }, ctx) {
     return getAuthenticatedUser(ctx).then((user) => {
       if (!user) {
-        return Promise.reject('Unauthorized');
+        return Promise.reject(new Error('Unauthorized'));
       }
 
       return Group.findOne({
@@ -146,7 +157,7 @@ export const groupLogic = {
         }],
       }).then((group) => {
         if (!group) {
-          Promise.reject('No group found');
+          Promise.reject(new Error('No group found'));
         }
 
         return group.removeUser(user.id)
@@ -163,6 +174,9 @@ export const groupLogic = {
   },
   updateGroup(_, { id, name }, ctx) {
     return getAuthenticatedUser(ctx).then((user) => { // eslint-disable-line arrow-body-style
+      if (!user) {
+        return Promise.reject(new Error('Unauthorized'));
+      }
       return Group.findOne({
         where: { id },
         include: [{

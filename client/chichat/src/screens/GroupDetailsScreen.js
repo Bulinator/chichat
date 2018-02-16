@@ -20,6 +20,7 @@ import GROUP_QUERY from '../graphql/Group.query';
 import USER_QUERY from '../graphql/User.query';
 import LEAVE_GROUP_MUTATION from '../graphql/LeaveGroup.mutation';
 import DELETE_GROUP_MUTATION from '../graphql/DeleteGroup.mutation';
+import UPDATE_GROUP_MUTATION from '../graphql/UpdateGroup.mutation';
 
 import Color from '../constants/Color';
 
@@ -105,6 +106,8 @@ const styles = StyleSheet.create({
 
 class GroupDetailsScreen extends Component {
   static navigationOptions = ({ navigation }) => {
+    const { state } = navigation;
+    const isReady = state.params && state.params.mode === 'ready';
     return {
       title: `${navigation.state.params.title}`,
       headerStyle: {
@@ -115,6 +118,15 @@ class GroupDetailsScreen extends Component {
       headerTitleStyle: {
         color: Color.txtDefaultColor,
       },
+      headerRight: (
+        isReady ? <Icon
+          name="angle-double-right"
+          type="font-awesome"
+          color={Color.txtDefaultColor}
+          containerStyle={{ marginRight: 10 }}
+          onPress={state.params.updateGroup}
+        /> : null
+      ),
       headerTintColor: Color.txtDefaultColor,
     };
   };
@@ -126,7 +138,32 @@ class GroupDetailsScreen extends Component {
     // init bind function
     this.deleteGroup = this.deleteGroup.bind(this);
     this.leaveGroup = this.leaveGroup.bind(this);
+    this.updateGroup = this.updateGroup.bind(this);
     this.renderItem = this.renderItem.bind(this);
+  }
+
+  componentWillUpdate(nextProps, nextState) {
+    if (!!this.state.name !== !!nextState.name || !!this.state.icon !== !!nextState.icon) {
+      this.refreshNavigation(nextProps, nextState);
+    }
+  }
+
+  refreshNavigation(props, state) {
+    const { navigation, group } = props;
+    navigation.setParams({
+      mode: (state.name && group.name !== state.name) ||
+        state.icon ? 'ready' : undefined,
+      updateGroup: this.updateGroup,
+      cancel: this.cancel,
+    });
+  }
+
+  // reset state
+  cancel() {
+    this.setState({
+      name: null,
+      updating: false,
+    });
   }
 
   deleteGroup() {
@@ -151,6 +188,13 @@ class GroupDetailsScreen extends Component {
       });
   }
 
+  updateGroup() {
+    this.setState({ updating: true });
+    console.log(this.props.group.id);
+    console.log(this.state.name);
+    this.props.updateGroup(this.props.group.id, this.state.name);
+  }
+
   keyExtractor = item => item.id;
 
   renderHeader = () => {
@@ -168,7 +212,14 @@ class GroupDetailsScreen extends Component {
           </TouchableOpacity>
 
           <View style={styles.groupNameBorder}>
-            <Text style={styles.groupName}>{group.name}</Text>
+            <TextInput
+              autofocus
+              autocorrect={false}
+              onChangeText={name => this.setState({ name })}
+              placeholder={group.name}
+              style={styles.groupName}
+              defaultValue={group.name}
+            />
           </View>
         </View>
         <Text style={styles.participants}>
@@ -207,7 +258,7 @@ class GroupDetailsScreen extends Component {
 
   render() {
     const { group, loading } = this.props;
-    if (loading || !group) {
+    if (loading || !group || this.state.updating) {
       return (
         <View style={styles.loading}>
           <Spinner />
@@ -250,6 +301,7 @@ GroupDetailsScreen.propTypes = {
   }),
   deleteGroup: PropTypes.func.isRequired,
   leaveGroup: PropTypes.func.isRequired,
+  updateGroup: PropTypes.func,
 };
 
 const groupQuery = graphql(GROUP_QUERY, {
@@ -304,7 +356,7 @@ const leaveGroupMutation = graphql(LEAVE_GROUP_MUTATION, {
       }),
   }),
 });
-/*
+
 const updateGroupMutation = graphql(UPDATE_GROUP_MUTATION, {
   props: ({ mutate }) => ({
     updateGroup: group =>
@@ -313,7 +365,7 @@ const updateGroupMutation = graphql(UPDATE_GROUP_MUTATION, {
       }),
   }),
 });
-*/
+
 const mapStateToProps = ({ auth }) => ({
   auth,
 });
@@ -323,4 +375,5 @@ export default compose(
   groupQuery,
   deleteGroupMutation,
   leaveGroupMutation,
+  updateGroupMutation,
 )(GroupDetailsScreen);
