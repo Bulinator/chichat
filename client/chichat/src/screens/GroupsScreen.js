@@ -151,15 +151,6 @@ Group.propTypes = {
   }),
 };
 
-const Header = ({ onPress }) => (
-  <View style={styles.header}>
-    <Button title={'New Group'} onPress={onPress} />
-  </View>
-);
-Header.propTypes = {
-  onPress: PropTypes.func.isRequired,
-};
-
 class GroupsScreen extends Component {
   static navigationOptions = ({ navigation }) => ({
     title: 'ChiChat',
@@ -232,7 +223,6 @@ class GroupsScreen extends Component {
           data={user.groups}
           keyExtractor={this.keyExtractor}
           renderItem={this.renderItem}
-          ListHeaderComponent={() => <Header onPress={this.goToNewGroup} />}
           onRefresh={this.onRefresh}
           refreshing={networkStatus === 4}
         />
