@@ -7,7 +7,7 @@ import { execute, subscribe } from 'graphql';
 import jwt from 'express-jwt';
 import jsonwebtoken from 'jsonwebtoken';
 
-import { getSubcriptionDetails } from './subscriptions'; // make sure this imports before executableSchema!
+import { getSubscriptionDetails } from './subscriptions'; // make sure this imports before executableSchema!
 import { JWT_SECRET } from './config';
 import { User } from './data/connectors';
 import { executableSchema } from './data/schema';
@@ -59,27 +59,31 @@ const subscriptionServer = SubscriptionServer.create({
   execute,
   subscribe,
   onConnect(connectionParams, websocket) {
-    if (connectionParams.jwt) {
-      jsonwebtoken.verify(connectionParams.jwt, JWT_SECRET, (err, decoded) => {
-        if (err) {
-          rej('Invalid Token');
-        } else {
-          rej('NO Token');
-        }
-      });
+    const userPromise = new Promise((res, rej) => {
+      if (connectionParams.jwt) {
+        jsonwebtoken.verify(connectionParams.jwt, JWT_SECRET, (err, decoded) => {
+          if (err) {
+            rej(new Error('Invalid Token'));
+          }
 
-      return userPromise.then((user) => {
-        if (user) {
-          return { user: Promise.resolve(user) };
-        }
+          res(User.findOne({ where: { id: decoded.id, version: decoded.version } }));
+        });
+      } else {
+        rej(new Error('No Token'));
+      }
+    });
 
-        return Promise.reject(new Error('No User'));
-      });
-    }
+    return userPromise.then((user) => {
+      if (user) {
+        return { user: Promise.resolve(user) };
+      }
+
+      return Promise.reject(new Error('No User'));
+    });
   },
   onOperation(parsedMessage, baseParams) {
     // Need to implement this!!
-    const { subscriptionName, args } = getSubcriptionDetails({
+    const { subscriptionName, args } = getSubscriptionDetails({
       baseParams,
       schema: executableSchema,
     });

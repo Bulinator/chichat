@@ -1,4 +1,4 @@
-import { client, wsClient } from '../navigation';
+import { client, wsClient } from '../../App';
 import { SET_CURRENT_USER, LOGOUT } from '../constants/Constants';
 
 export const setCurrentUser = user => ({
@@ -8,7 +8,7 @@ export const setCurrentUser = user => ({
 
 export const logout = () => {
   client.resetStore();
-  // wsClient.unsubscribeAll(); // unsubscribe from all subscriptions
-  // wsClient.close();
+  wsClient.unsubscribeAll(); // unsubscribe from all subscriptions
+  wsClient.close();
   return { type: LOGOUT };
 };

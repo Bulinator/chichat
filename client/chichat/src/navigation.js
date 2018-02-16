@@ -6,12 +6,14 @@ import {
   addNavigationHelpers,
   StackNavigator,
   TabNavigator,
+  NavigationActions,
 } from 'react-navigation';
 import { graphql, compose } from 'react-apollo';
 import update from 'immutability-helper';
 import { map } from 'lodash';
 import { Buffer } from 'buffer';
-import { SubscriptionClient } from 'subscriptions-transport-ws';
+import { REHYDRATE } from 'redux-persist/constants';
+
 import Color from '../src/constants/Color';
 import GroupsScreen from '../src/screens/GroupsScreen';
 import NewGroupScreen from '../src/screens/NewGroupScreen';
@@ -19,17 +21,13 @@ import FinalizeGroupScreen from '../src/screens/FinalizeGroupScreen';
 import GroupDetailsScreen from '../src/screens/GroupDetailsScreen';
 import MessagesScreen from '../src/screens/MessagesScreen';
 import SignInScreen from '../src/screens/SignInScreen';
+import SettingsScreen from '../src/screens/SettingsScreen';
 
 import { USER_QUERY } from '../src/graphql/User.query';
 import GROUP_ADDED_SUBSCRIPTION from '../src/graphql/GroupAdded.subscription';
 import MESSAGE_ADDED_SUBSCRIPTION from '../src/graphql/MessageAdded.subscription';
 
-export const wsClient = new SubscriptionClient(`ws://localhost:8081/subscriptions`, {
-  reconnect: true,
-  connectionParams: {
-    // Pass any arguments you want for initialization
-  },
-});
+import { wsClient } from '../App';
 
 const styles = StyleSheet.create({
   container: {
@@ -51,7 +49,7 @@ const TestScreen = title => () => (
 // main scene with tab
 const MainScreenNavigator = TabNavigator({
   Chichat: { screen: GroupsScreen },
-  Settings: { screen: TestScreen('settings') },
+  Settings: { screen: SettingsScreen },
 }, {
   tabBarOptions: {
     style: {
@@ -92,6 +90,27 @@ const initialNavState = AppNavigator.router.getStateForAction(tempNavState);
 export const navigationReducer = (state = initialNavState, action) => {
   let nextState;
   switch (action.type) {
+    case REHYDRATE:
+      // convert persisted data to Immutable and confirm rehydratation
+      if (!action.payload.auth || !action.payload.auth.jwt) {
+        const { routes, index } = state;
+        if (routes[index].routeName !== 'Signin') {
+          nextState = AppNavigator.router.getStateForAction(
+            NavigationActions.navigate({ routeName: 'Signin' }),
+            state,
+          );
+        }
+      }
+      break;
+    case 'LOGOUT':
+      const { routes, index } = state;
+      if (routes[index].routeName !== 'Signin') {
+        nextState = AppNavigator.router.getStateForAction(
+          NavigationActions.navigate({ routeName: 'Signin' }),
+          state,
+        );
+      }
+      break;
     default:
       nextState = AppNavigator.router.getStateForAction(action, state);
       break;
@@ -185,7 +204,6 @@ const userQuery = graphql(USER_QUERY, {
       return subscribeToMore({
         document: MESSAGE_ADDED_SUBSCRIPTION,
         variables: {
-          userId: 1, // fake the user for now
           groupIds: map(user.groups, 'id'),
         },
         updateQuery: (previousResult, { subscriptionData }) => {

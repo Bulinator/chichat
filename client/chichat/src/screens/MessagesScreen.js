@@ -13,11 +13,11 @@ import PropTypes from 'prop-types';
 import { graphql, compose } from 'react-apollo';
 import update from 'immutability-helper';
 import { Buffer } from 'buffer';
+import { connect } from 'react-redux';
 import { Icon } from 'react-native-elements';
 import randomColor from 'randomcolor';
 import moment from 'moment';
 
-import { wsClient } from '../../App';
 import Message from '../components/Message';
 import MessageInput from '../components/MessageInput';
 import Color from '../constants/Color';
@@ -183,7 +183,6 @@ class MessagesScreen extends Component {
   send(text) {
     this.props.createMessage({
       groupId: this.props.navigation.state.params.groupId,
-      userId: 1, // faking the user for now
       text,
     }).then(() => {
       this.flatList.scrollToIndex({ index: 0, animated: true });
@@ -198,7 +197,7 @@ class MessagesScreen extends Component {
     return (
       <Message
         color={this.state.usernameColors[message.from.username]}
-        isCurrentUser={message.from.id === 1} // fake until implement auth
+        isCurrentUser={message.from.id === this.props.auth.id}
         message={message}
       />
     );
@@ -248,6 +247,10 @@ MessagesScreen.propTypes = {
         groupId: PropTypes.number,
       }),
     }),
+  }),
+  auth: PropTypes.shape({
+    id: PropTypes.number,
+    username: PropTypes.string,
   }),
   group: PropTypes.shape({
     messages: PropTypes.shape({
@@ -327,10 +330,10 @@ const groupQuery = graphql(GROUP_QUERY, {
 // so why not fake it until we get a response? react-apollo lets us accomplish this
 // by adding an optimisticResponse parameter to mutate
 const createMessageMutation = graphql(CREATE_MESSAGE_MUTATION, {
-  props: ({ mutate }) => ({
-    createMessage: ({ text, userId, groupId }) =>
+  props: ({ ownProps, mutate }) => ({
+    createMessage: ({ text, groupId }) =>
       mutate({
-        variables: { text, userId, groupId },
+        variables: { text, groupId },
         optimisticResponse: {
           __typename: 'Mutation',
           createMessage: {
@@ -340,8 +343,8 @@ const createMessageMutation = graphql(CREATE_MESSAGE_MUTATION, {
             createdAt: new Date().toISOString(), // the time is now!
             from: {
               __typename: 'User',
-              id: 1, // still faking the user
-              username: 'Justyn.Kautzer', // still faking the user
+              id: ownProps.auth.id,
+              username: ownProps.auth.username,
             },
             to: {
               __typename: 'Group',
@@ -384,7 +387,7 @@ const createMessageMutation = graphql(CREATE_MESSAGE_MUTATION, {
           const userData = store.readQuery({
             query: USER_QUERY,
             variables: {
-              id: 1, // fake for now
+              id: ownProps.auth.id,
             },
           });
 
@@ -403,7 +406,7 @@ const createMessageMutation = graphql(CREATE_MESSAGE_MUTATION, {
             store.writeQuery({
               query: USER_QUERY,
               variables: {
-                id: 1, // fake user for now
+                id: ownProps.auth.id,
               },
               data: userData,
             });
@@ -413,7 +416,12 @@ const createMessageMutation = graphql(CREATE_MESSAGE_MUTATION, {
   }),
 });
 
+const mapStateToProps = ({ auth }) => ({
+  auth,
+});
+
 export default compose(
+  connect(mapStateToProps),
   groupQuery,
   createMessageMutation,
 )(MessagesScreen);

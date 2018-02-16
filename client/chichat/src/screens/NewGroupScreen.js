@@ -9,9 +9,10 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { graphql, compose } from 'react-apollo';
+import { connect } from 'react-redux';
 import update from 'immutability-helper';
 import AlphabetListView from 'react-native-alphabetlistview';
-import { Icon, Button } from 'react-native-elements';
+import { Icon } from 'react-native-elements';
 
 import SelectedUserList from '../components/SelectedUserList';
 import { Spinner } from '../components/common';
@@ -294,12 +295,17 @@ NewGroupScreen.propTypes = {
 };
 
 const userQuery = graphql(USER_QUERY, {
-  options: ownProps => ({ variables: { id: 1 } }), // fake user for now
+  options: ownProps => ({ variables: { id: ownProps.auth.id } }),
   props: ({ data: { loading, user } }) => ({
     loading, user,
   }),
 });
 
-const componentWithData = compose(userQuery)(NewGroupScreen);
+const mapStateToProps = ({ auth }) => ({
+  auth,
+});
 
-export default componentWithData;
+export default compose(
+  connect(mapStateToProps),
+  userQuery,
+)(NewGroupScreen);

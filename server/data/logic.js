@@ -1,10 +1,10 @@
-import { Message } from './connectors';
+import { Group, Message, User } from './connectors';
 
 // reusable function to check for a user with context
 function getAuthenticatedUser(ctx) {
   return ctx.user.then((user) => {
     if (!user) {
-      return Promise.reject('Unauthorized');
+      return Promise.reject(new Error('Unauthorized'));
     }
     return user;
   });
@@ -28,7 +28,7 @@ export const messageLogic = {
               groupId,
             });
           }
-          return Promise.reject('Unauthorized');
+          return Promise.reject(new Error('Unauthorized'));
         }));
   },
 };
@@ -246,7 +246,7 @@ export const subscriptionLogic = {
       .then((groups) => {
         // user attempted to subscribe to some groups without access
         if (args.groupIds.length > groups.length) {
-          return Promise.reject(new Error('Unauthorized'));
+          return Promise.reject('Unauthorized');
         }
 
         baseParams.context = ctx;

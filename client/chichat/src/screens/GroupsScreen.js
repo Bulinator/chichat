@@ -8,9 +8,11 @@ import {
   TouchableHighlight,
   Platform,
   Image,
+  Button,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { graphql, compose } from 'react-apollo';
+import { connect } from 'react-redux';
 import { Icon } from 'react-native-elements';
 import moment from 'moment';
 import Color from '../constants/Color';
@@ -84,9 +86,6 @@ const fakeData = () => _.times(100, i => ({
   name: `Group ${i}`,
 }));
 
-// we'll fake signin for now
-let IS_SIGNED_IN = false;
-
 class Group extends Component {
   constructor(props) {
     super(props);
@@ -152,6 +151,15 @@ Group.propTypes = {
   }),
 };
 
+const Header = ({ onPress }) => (
+  <View style={styles.header}>
+    <Button title={'New Group'} onPress={onPress} />
+  </View>
+);
+Header.propTypes = {
+  onPress: PropTypes.func.isRequired,
+};
+
 class GroupsScreen extends Component {
   static navigationOptions = ({ navigation }) => ({
     title: 'ChiChat',
@@ -178,15 +186,6 @@ class GroupsScreen extends Component {
     this.onRefresh = this.onRefresh.bind(this);
   }
 
-  componentDidMount() {
-    console.log('logged: ', IS_SIGNED_IN);
-    if (!IS_SIGNED_IN) {
-      IS_SIGNED_IN = true;
-      const { navigate } = this.props.navigation;
-      navigate('Signin');
-    }
-  }
-
   keyExtractor = item => item.id;
 
   goToMessages = (group) => {
@@ -194,6 +193,11 @@ class GroupsScreen extends Component {
     // groupId and title will attach to
     // props.navigation.state.params in Messages
     navigate('Messages', { groupId: group.id, title: group.name });
+  }
+
+  goToNewGroup() {
+    const { navigate } = this.props.navigation;
+    navigate('NewGroup');
   }
 
   onRefresh() {
@@ -228,6 +232,7 @@ class GroupsScreen extends Component {
           data={user.groups}
           keyExtractor={this.keyExtractor}
           renderItem={this.renderItem}
+          ListHeaderComponent={() => <Header onPress={this.goToNewGroup} />}
           onRefresh={this.onRefresh}
           refreshing={networkStatus === 4}
         />
@@ -254,13 +259,20 @@ GroupsScreen.propTypes = {
 };
 
 const userQuery = graphql(USER_QUERY, {
-  skip: ownProps => true, // fake it -- we'll use ownProps with auth
-  options: () => ({ variables: { id: 1 } }), // fake user for now
+  skip: ownProps => !ownProps.auth || !ownProps.auth.jwt,
+  options: ownProps => ({ variables: { id: ownProps.auth.id } }),
   props: ({ data: { loading, networkStatus, refetch, user } }) => ({
     loading, networkStatus, refetch, user,
   }),
 });
 
-const componentWithData = compose(userQuery)(GroupsScreen);
+const mapStateToProps = ({ auth }) => ({
+  auth,
+});
+
+const componentWithData = compose(
+  connect(mapStateToProps),
+  userQuery,
+)(GroupsScreen);
 
 export default componentWithData;

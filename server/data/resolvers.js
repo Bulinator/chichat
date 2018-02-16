@@ -63,6 +63,7 @@ export const Resolvers = {
       return User.findOne({ where: { email } })
         .then((user) => {
           if (user) {
+            console.log(email);
             // validate password
             return bcrypt.compare(password, user.password)
               .then((res) => {
