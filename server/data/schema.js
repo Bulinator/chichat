@@ -5,6 +5,12 @@ export const Schema = [`
   # custom scalar (date isn't a default scalar in graphQL)
   scalar Date
 
+  # input for creating groups
+  input CreateGroupInput {
+    name: String!
+    userIds: [Int!]
+  }
+
   type MessageConnection {
     edges: [MessageEdge]
     pageInfo: PageInfo!
@@ -66,7 +72,7 @@ export const Schema = [`
   type Mutation {
     # send a message to a group
     createMessage(text: String!, groupId: Int!): Message
-    createGroup(name: String!, userIds: [Int!]): Group
+    createGroup(group: CreateGroupInput!): Group
     deleteGroup(id: Int!): Group
     leaveGroup(id: Int!): Group
     updateGroup(id: Int!, name: String!): Group

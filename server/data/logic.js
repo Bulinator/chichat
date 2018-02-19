@@ -115,7 +115,8 @@ export const groupLogic = {
       }],
     }));
   },
-  createGroup(_, { name, userIds }, ctx) {
+  createGroup(_, createGroupInput, ctx) {
+    const { name, userIds } = createGroupInput.group;
     return getAuthenticatedUser(ctx)
       .then(user => user.getFriends({ where: { id: { $in: userIds } } })
         .then((friends) => { // eslint-disable-line arrow-body-style
