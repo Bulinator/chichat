@@ -130,6 +130,15 @@ export const groupLogic = {
         });
       });
   },
+  registrationId(user, args, ctx) {
+    return getAuthenticatedUser(ctx).then((currentUser) => {
+      if (currentUser.id === user.id) {
+        return currentUser.registrationId;
+      }
+
+      return Promise.reject(new Error('Unauthorized'));
+    });
+  },
   query(_, { id }, ctx) {
     return getAuthenticatedUser(ctx).then(user => Group.findOne({
       where: { id },
@@ -265,7 +274,7 @@ export const userLogic = {
   messages(user, args, ctx) {
     return getAuthenticatedUser(ctx).then((currentUser) => {
       if (currentUser.id !== user.id) {
-        return Promise.reject('Unauthorized');
+        return Promise.reject(new Error('Unauthorized'));
       }
 
       return Message.findAll({
@@ -280,7 +289,12 @@ export const userLogic = {
         return user;
       }
 
-      return Promise.reject('Unauthorized');
+      return Promise.reject(new Error('Unauthorized'));
+    });
+  },
+  updateUser(_, { registrationId = null }, ctx) {
+    return getAuthenticatedUser(ctx).then((user) => { // eslint-disable-line arrow-body-style
+      return user.update({ registrationId });
     });
   },
 };

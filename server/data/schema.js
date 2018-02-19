@@ -35,6 +35,7 @@ export const Schema = [`
   # input for updating users
   input UpdateUserInput {
     username: String
+    registrationId: String
   }
 
   # input for relay cursor connections
@@ -80,6 +81,7 @@ export const Schema = [`
     groups: [Group] # groups the user belongs to
     friends: [User] # users's friends/contact
     jwt: String # json web token access
+    registrationId: String
   }
 
   # message chat entity
@@ -114,6 +116,7 @@ export const Schema = [`
     updateGroup(group: UpdateGroupInput!): Group
     login(user: SigninUserInput!): User
     signup(user: SigninUserInput!): User
+    updateUser(user: UpdateUserInput!): User # update registration for user
   }
 
   # live event subscription
