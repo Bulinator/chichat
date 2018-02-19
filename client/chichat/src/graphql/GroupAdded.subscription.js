@@ -1,22 +1,13 @@
 import gql from 'graphql-tag';
 
-import MESSAGE_FRAGMENT from './Message.fragment';
+import GROUP_FRAGMENT from './Group.fragment';
 
 const GROUP_ADDED_SUBSCRIPTION = gql`
-  subscription onGroupAdded($userId: Int){
-    groupAdded(userId: $userId){
-      id
-      name
-      messages(first: 1) {
-        edges {
-          cursor
-          node {
-            ... MessageFragment
-          }
-        }
-      }
+  subscription onGroupAdded($userId: Int, $first: Int = 1, $after: String, $last: Int, $before: String) {
+    groupAdded(userId: $userId) {
+      ... GroupFagment
     }
   }
-  ${MESSAGE_FRAGMENT}
+  ${GROUP_FRAGMENT}
 `;
 export default GROUP_ADDED_SUBSCRIPTION;
