@@ -17,6 +17,7 @@ import { Icon } from 'react-native-elements';
 import randomColor from 'randomcolor';
 import moment from 'moment';
 
+import { wsClient } from '../../App';
 import Message from '../components/Message';
 import MessageInput from '../components/MessageInput';
 import Color from '../constants/Color';
@@ -143,7 +144,6 @@ class MessagesScreen extends Component {
         this.subscription = nextProps.subscribeToMore({
           document: MESSAGE_ADDED_SUBSCRIPTION,
           variables: {
-            userId: 1, // fake the user for now
             groupIds: [nextProps.navigation.state.params.groupId],
           },
           updateQuery: (previousResult, { subscriptionData }) => {
@@ -166,9 +166,17 @@ class MessagesScreen extends Component {
         });
       }
 
+      if (!this.reconnected) {
+        this.reconnected = wsClient.onReconnected(() => {
+          this.props.refetch(); // check for any data lost during disconnect
+        }, this);
+      }
 
       // update user's state color
       this.setState({ usernameColors });
+    } else if (this.reconnected) {
+      // remove event subscription
+      this.reconnected();
     }
   }
 
@@ -276,6 +284,7 @@ MessagesScreen.propTypes = {
   }),
   loading: PropTypes.bool,
   loadMoreEntries: PropTypes.func,
+  refetch: PropTypes.func,
   subscribeToMore: PropTypes.func,
   updateGroup: PropTypes.func,
 };

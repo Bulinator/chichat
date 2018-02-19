@@ -172,6 +172,7 @@ Group.propTypes = {
   group: PropTypes.shape({
     id: PropTypes.number,
     name: PropTypes.string,
+    unreadCount: PropTypes.number,
     messages: PropTypes.shape({
       edges: PropTypes.arrayOf(PropTypes.shape({
         cursor: PropTypes.string,
@@ -193,7 +194,7 @@ class GroupsScreen extends Component {
       color: Color.txtDefaultColor,
     },
     headerRight:
-      <Icon
+      <Icon // eslint-disable-line
         name="plus-square-o"
         color="#fff"
         type="font-awesome"

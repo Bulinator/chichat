@@ -131,29 +131,36 @@ const AppWithNavigationState = ({ dispatch, nav }) => (
 class AppWithNavigationState extends Component {
   componentWillReceiveProps(nextProps) {
     // when we get the user, start listening for notifications
+    if (nextProps.user && !this.props.user) {
+      console.log("here get token");
+    }
 
     if (!nextProps.user) {
+      // unsubscribe from all notifications
+      // to do
+
       if (this.groupSubscription) {
         this.groupSubscription();
       }
+
       if (this.messagesSubscription) {
         this.messagesSubscription();
       }
+
       // clear the event subscription
       if (this.reconnected) {
         this.reconnected();
       }
-    }
-
-    if (!this.reconnected) {
+    } else if (!this.reconnected) {
       this.reconnected = wsClient.onReconnected(() => {
-        this.props.refetch(); // check for any data lost during disconnection
+        this.props.refetch(); // check for any data lost during disconnect
       }, this);
     }
 
     if (nextProps.user &&
       (!this.props.user || nextProps.user.groups.length !== this.props.user.groups.length)) {
       // unsubscribe from old
+
       if (typeof this.messagesSubscription === 'function') {
         this.messagesSubscription();
       }
@@ -168,9 +175,35 @@ class AppWithNavigationState extends Component {
     }
   }
 
+
   getPushtoken = async () => {
-    let { status } = await Permissions.askAsync(Permissions.REMOTE_NOTIFICATIONS);
-    console.log('status: ', status);
+    let previousToken = await AsyncStorage.getItem('pushtoken');
+    if (previousToken) {
+      return;
+    }
+
+    const { status: existingStatus } = await Permissions.getAsync(Permissions.NOTIFICATIONS);
+    let finalStatus = existingStatus;
+
+    // only ask if permissions have not already been determined, because
+    // iOS won't necessarily prompt the user a second time.
+    if (existingStatus !== 'granted') {
+      // Android remote notification permissions are granted during the app
+      // install, so this will only ask on iOS
+      const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
+      finalStatus = status;
+    }
+
+    // Stop here if the user did not grant permissions
+    if (finalStatus !== 'granted') {
+      return;
+    }
+
+    // Get the token that uniquely identifies this device
+    let token = await Notifications.getExpoPushTokenAsync();
+    if (token) {
+      AsyncStorage.setItem('pushtoken', token);
+    }
   }
 
   render() {
