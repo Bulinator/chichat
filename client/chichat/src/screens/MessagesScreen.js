@@ -6,14 +6,13 @@ import {
   FlatList,
   Platform,
   KeyboardAvoidingView,
-  Text,
-  TouchableOpacity,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { graphql, compose } from 'react-apollo';
 import update from 'immutability-helper';
 import { Buffer } from 'buffer';
 import { connect } from 'react-redux';
+import gql from 'graphql-tag';
 import { Icon } from 'react-native-elements';
 import randomColor from 'randomcolor';
 import moment from 'moment';
@@ -27,6 +26,7 @@ import GROUP_QUERY from '../graphql/Group.query';
 import USER_QUERY from '../graphql/User.query';
 import CREATE_MESSAGE_MUTATION from '../graphql/CreateMessage.mutation';
 import MESSAGE_ADDED_SUBSCRIPTION from '../graphql/MessageAdded.subscription';
+import UPDATE_GROUP_MUTATION from '../graphql/UpdateGroup.mutation';
 
 const styles = StyleSheet.create({
   container: {
@@ -123,6 +123,12 @@ class MessagesScreen extends Component {
     // check new message
     const usernameColors = {};
     if (nextProps.group) {
+      if (nextProps.group.messages && nextProps.group.messages.length && nextProps.group.messages[0].id >= 0 &&
+        (!nextProps.group.lastRead || nextProps.group.lastRead.id !== nextProps.group.messages[0].id)) {
+        const { group } = nextProps;
+        nextProps.updateGroup({ id: group.id, name: group.name, lastRead: group.messages[0].id });
+      }
+
       if (nextProps.group.users) {
         // Apply color to each users
         nextProps.group.users.forEach((user) => {
@@ -263,11 +269,15 @@ MessagesScreen.propTypes = {
         hasPreviousPage: PropTypes.bool,
       }),
     }),
+    lastRead: PropTypes.shape({
+      id: PropTypes.number,
+    }),
     users: PropTypes.array,
   }),
   loading: PropTypes.bool,
   loadMoreEntries: PropTypes.func,
   subscribeToMore: PropTypes.func,
+  updateGroup: PropTypes.func,
 };
 
 const ITEMS_PER_PAGE = 10;
@@ -416,6 +426,30 @@ const createMessageMutation = graphql(CREATE_MESSAGE_MUTATION, {
   }),
 });
 
+const updateGroupMutation = graphql(UPDATE_GROUP_MUTATION, {
+  props: ({ mutate }) => ({
+    updateGroup: group =>
+      mutate({
+        variables: { group },
+        update: (store, { data: { updateGroup } }) => {
+          // Read the data from our cache for this query.
+          store.writeFragment({
+            id: `Group:${updateGroup.id}`,
+            fragment: gql`
+              fragment group on Group {
+                unreadCount
+              }
+            `,
+            data: {
+              __typename: 'Group',
+              unreadCount: 0,
+            },
+          });
+        },
+      }),
+  }),
+});
+
 const mapStateToProps = ({ auth }) => ({
   auth,
 });
@@ -424,4 +458,5 @@ export default compose(
   connect(mapStateToProps),
   groupQuery,
   createMessageMutation,
+  updateGroupMutation,
 )(MessagesScreen);

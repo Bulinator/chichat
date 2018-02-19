@@ -196,7 +196,7 @@ const mapStateToProps = state => ({
 const userQuery = graphql(USER_QUERY, {
   skip: ownProps => true, // fake it -- we'll use ownProps with auth
   options: () => ({ variables: { id: 1 } }), // fake the user for now
-  props: ({ data: { loading, user, subscribeToMore } }) => ({
+  props: ({ data: { loading, user, subscribeToMore }, ownProps: { nav } }) => ({
     loading,
     user,
     subscribeToMore,
@@ -209,7 +209,14 @@ const userQuery = graphql(USER_QUERY, {
         updateQuery: (previousResult, { subscriptionData }) => {
           const previousGroups = previousResult.user.groups;
           const newMessage = subscriptionData.data.messageAdded;
+
           const groupIndex = map(previousGroups, 'id').indexOf(newMessage.to.id);
+          const { index, routes } = nav;
+          let unreadCount = previousGroups[groupIndex].unreadCount;
+          if (routes[index].routeName !== 'Messages' || routes[index].params.groupId !== groupIndex) {
+            unreadCount += 1;
+          }
+
           return update(previousResult, {
             user: {
               groups: {
@@ -223,6 +230,7 @@ const userQuery = graphql(USER_QUERY, {
                       }],
                     },
                   },
+                  unreadCount: { $set: unreadCount },
                 },
               },
             },
