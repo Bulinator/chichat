@@ -6,7 +6,7 @@ import {
 import { ApolloProvider } from 'react-apollo';
 import { createStore, combineReducers, applyMiddleware } from 'redux';
 import { composeWithDevTools } from 'redux-devtools-extension';
-import ApolloClient, { createNetworkInterface } from 'apollo-client';
+import ApolloClient, { createBatchingNetworkInterface } from 'apollo-client';
 import { SubscriptionClient, addGraphQLSubscriptions } from 'subscriptions-transport-ws';
 import { persistStore, autoRehydrate } from 'redux-persist';
 import thunk from 'redux-thunk';
@@ -16,11 +16,15 @@ import AppWithNavigationState, { navigationReducer } from './src/navigation';
 import auth from './src/reducers/auth.reducer';
 import { logout } from './src/actions/auth.actions';
 
-const networkInterface = createNetworkInterface({ uri: 'http://localhost:8081/graphql' });
+const networkInterface = createBatchingNetworkInterface({
+  uri: 'http://192.168.1.8:8081/graphql',
+  batchInterval: 10,
+  queryDeduplication: true,
+});
 
 // middleware for requests
 networkInterface.use([{
-  applyMiddleware(req, next) {
+  applyBatchMiddleware(req, next) {
     if (!req.options.headers) {
       req.options.headers = {};
     }
@@ -34,6 +38,7 @@ networkInterface.use([{
 }]);
 
 // afterware for responses
+/*
 networkInterface.useAfter([{
   applyAfterware({ response }, next) {
     if (!response.ok) {
@@ -57,6 +62,28 @@ networkInterface.useAfter([{
         next();
       });
     }
+  },
+}]);
+*/
+// afterware for responses
+networkInterface.useAfter([{
+  applyBatchAfterware({ responses }, next) {
+    let isUnauthorized = false;
+
+    responses.forEach((response) => {
+      if (response.errors) {
+        console.log('GraphQL Error:', response.errors);
+        if (_.some(response.errors, { message: 'Unauthorized' })) {
+          isUnauthorized = true;
+        }
+      }
+    });
+
+    if (isUnauthorized) {
+      store.dispatch(logout());
+    }
+
+    next();
   },
 }]);
 

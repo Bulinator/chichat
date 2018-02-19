@@ -5,14 +5,18 @@ import {
 } from 'redux';
 import { AsyncStorage } from 'react-native';
 import { composeWithDevTools } from 'redux-devtools-extension/developmentOnly';
-import ApolloClient, { createNetworkInterface } from 'apollo-client';
+import ApolloClient, { createBatchingNetworkInterface } from 'apollo-client';
 import { addGraphQLSubscriptions, SubscriptionClient } from 'subscriptions-transport-ws';
 import { persistStore, autoRehydrate } from 'redux-persist';
 import thunk from 'redux-thunk';
 import { navigationReducer } from '../navigation';
 import auth from '../reducers/auth.reducer';
 
-const networkInterface = createNetworkInterface({ uri: 'http://192.168.1.8:8081/graphql' });
+const networkInterface = createBatchingNetworkInterface({
+  uri: 'http://192.168.1.8:8081/graphql',
+  batchInterval: 10,
+  queryDeduplication: true,
+});
 
 // extends network interface with websocket
 const networkInterfaceWithSubscriptions = addGraphQLSubscriptions(

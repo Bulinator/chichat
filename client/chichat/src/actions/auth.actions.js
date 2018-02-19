@@ -7,7 +7,8 @@ export const setCurrentUser = user => ({
 });
 
 export const logout = () => {
-  client.resetStore();
+  //client.resetStore();
+  setTimeout(client.resetStore);
   wsClient.unsubscribeAll(); // unsubscribe from all subscriptions
   wsClient.close();
   return { type: LOGOUT };
