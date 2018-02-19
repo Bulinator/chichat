@@ -285,7 +285,9 @@ const groupQuery = graphql(GROUP_QUERY, {
   options: ownProps => ({
     variables: {
       groupId: ownProps.navigation.state.params.groupId, // => buggy here ownProps is empty groupId
-      first: ITEMS_PER_PAGE,
+      messageConnection: {
+        first: ITEMS_PER_PAGE,
+      },
     },
   }),
   props: ({ data: { fetchMore, loading, group, subscribeToMore } }) => ({
@@ -297,8 +299,11 @@ const groupQuery = graphql(GROUP_QUERY, {
         // query: ... (you can specify a different query.
         // GROUP_QUERY is used by default)
         variables: {
-          // load more queries starting from the cursor of the last (oldest) message
-          after: group.messages.edges[group.messages.edges.length - 1].cursor,
+          messageConnection: {
+            // load more queries starting from the cursor of the last (oldest) message
+            after: group.messages.edges[group.messages.edges.length - 1].cursor,
+            first: ITEMS_PER_PAGE,
+          },
         },
         updateQuery: (previousResult, { fetchMoreResult }) => {
           // we will make an extra call to check if no more entries
@@ -368,7 +373,7 @@ const createMessageMutation = graphql(CREATE_MESSAGE_MUTATION, {
             query: GROUP_QUERY,
             variables: {
               groupId: message.groupId,
-              first: ITEMS_PER_PAGE,
+              messageConnection: { first: ITEMS_PER_PAGE },
             },
           });
 
@@ -389,7 +394,7 @@ const createMessageMutation = graphql(CREATE_MESSAGE_MUTATION, {
             query: GROUP_QUERY,
             variables: {
               groupId: message.groupId,
-              first: ITEMS_PER_PAGE,
+              messageConnection: { first: ITEMS_PER_PAGE },
             },
             data,
           });

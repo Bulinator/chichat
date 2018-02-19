@@ -66,7 +66,7 @@ export const Schema = [`
     name: String! # name of the group
     users: [User]! # users in the group
     # messages: [Message] # messages sent to the group
-    messages(first: Int, after: String, last: Int, before: String): MessageConnection
+    messages(messageConnection: ConnectionInput): MessageConnection
     lastRead: Message # message last read by user
     unreadCount: Int # number of unread messages by user
   }

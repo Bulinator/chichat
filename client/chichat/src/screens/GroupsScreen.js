@@ -8,7 +8,6 @@ import {
   TouchableHighlight,
   Platform,
   Image,
-  Button,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { graphql, compose } from 'react-apollo';

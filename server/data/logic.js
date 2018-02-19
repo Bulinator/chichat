@@ -38,7 +38,8 @@ export const groupLogic = {
   users(group) {
     return group.getUsers({ attributes: ['id', 'username'] });
   },
-  messages(group, { first, last, before, after }) {
+  messages(group, { messageConnection = {} }) {
+    const { first, last, before, after } = messageConnection;
     // base query -- get messages from the right group
     const where = { groupId: group.id };
 

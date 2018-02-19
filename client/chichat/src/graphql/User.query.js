@@ -13,7 +13,7 @@ export const USER_QUERY = gql`
         id
         name
         unreadCount
-        messages(first: 1) { # no needs to use variables here
+        messages(messageConnection: { first: 1 }) { # no needs to use variables here
           edges {
             cursor
             node {
