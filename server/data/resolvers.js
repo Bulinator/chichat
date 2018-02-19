@@ -58,7 +58,8 @@ export const Resolvers = {
     updateGroup(_, args, ctx) {
       return groupLogic.updateGroup(_, args, ctx);
     },
-    login(_, { email, password }, ctx) {
+    login(_, signinUserInput, ctx) {
+      const { email, password } = signinUserInput.user;
       // find userByEmail
       return User.findOne({ where: { email } })
         .then((user) => {
@@ -85,7 +86,8 @@ export const Resolvers = {
           return Promise.reject(new Error('email not found'));
         });
     },
-    signup(_, { email, password, username, }, ctx) {
+    signup(_, signinUserInput, ctx) {
+      const { email, password, username } = signinUserInput.user;
       // find userByEmail
       return User.findOne({ where: { email } }).then((existing) => {
         if (!existing) {

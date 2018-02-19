@@ -17,7 +17,8 @@ export const messageLogic = {
   to(message) {
     return message.getGroup({ attributes: ['id', 'name'] });
   },
-  createMessage(_, { text, groupId }, ctx) {
+  createMessage(_, createMessageInput, ctx) {
+    const { text, groupId } = createMessageInput.message;
     return getAuthenticatedUser(ctx)
       .then(user => user.getGroups({ where: { id: groupId }, attributes: ['id'] })
         .then((group) => {

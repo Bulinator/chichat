@@ -331,15 +331,15 @@ const groupQuery = graphql(GROUP_QUERY, {
 // by adding an optimisticResponse parameter to mutate
 const createMessageMutation = graphql(CREATE_MESSAGE_MUTATION, {
   props: ({ ownProps, mutate }) => ({
-    createMessage: ({ text, groupId }) =>
+    createMessage: message =>
       mutate({
-        variables: { text, groupId },
+        variables: { message },
         optimisticResponse: {
           __typename: 'Mutation',
           createMessage: {
             __typename: 'Message',
             id: -1, // don't know id yet, but it doesn't matter
-            text, // we know what the text will be
+            text: message.text, // we know what the text will be
             createdAt: new Date().toISOString(), // the time is now!
             from: {
               __typename: 'User',
@@ -348,7 +348,7 @@ const createMessageMutation = graphql(CREATE_MESSAGE_MUTATION, {
             },
             to: {
               __typename: 'Group',
-              id: groupId,
+              id: message.groupId,
             },
           },
         },
@@ -357,7 +357,7 @@ const createMessageMutation = graphql(CREATE_MESSAGE_MUTATION, {
           const data = store.readQuery({
             query: GROUP_QUERY,
             variables: {
-              groupId,
+              groupId: message.groupId,
               first: ITEMS_PER_PAGE,
             },
           });
@@ -378,7 +378,7 @@ const createMessageMutation = graphql(CREATE_MESSAGE_MUTATION, {
           store.writeQuery({
             query: GROUP_QUERY,
             variables: {
-              groupId,
+              groupId: message.groupId,
               first: ITEMS_PER_PAGE,
             },
             data,
@@ -391,10 +391,10 @@ const createMessageMutation = graphql(CREATE_MESSAGE_MUTATION, {
             },
           });
 
-          const updatedGroup = _.find(userData.user.groups, { id: groupId });
+          const updatedGroup = _.find(userData.user.groups, { id: message.groupId });
           if (!updatedGroup.messages.edges.length ||
           moment(updatedGroup.messages.edges[0].node.createdAt)
-            .isBefore(moment(createMessage.createdAt))) {
+            .isBefore(moment(message.createdAt))) {
             // update the latest message
             updatedGroup.messages.edges[0] = {
               __typename: 'MessageEdge',

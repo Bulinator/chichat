@@ -11,6 +11,19 @@ export const Schema = [`
     userIds: [Int!]
   }
 
+  # input for creating messages
+  input CreateMessageInput {
+    groupId: Int!
+    text: String!
+  }
+
+  # input for signing in users
+  input SigninUserInput {
+    email: String!
+    password: String!
+    username: String
+  }
+
   type MessageConnection {
     edges: [MessageEdge]
     pageInfo: PageInfo!
@@ -71,13 +84,13 @@ export const Schema = [`
   # Update query; called Mutation
   type Mutation {
     # send a message to a group
-    createMessage(text: String!, groupId: Int!): Message
+    createMessage(message: CreateMessageInput!): Message
     createGroup(group: CreateGroupInput!): Group
     deleteGroup(id: Int!): Group
     leaveGroup(id: Int!): Group
     updateGroup(id: Int!, name: String!): Group
-    login(email: String!, password: String!): User
-    signup(email: String!, password: String!, username: String): User
+    login(user: SigninUserInput!): User
+    signup(user: SigninUserInput!): User
   }
 
   # live event subscription
