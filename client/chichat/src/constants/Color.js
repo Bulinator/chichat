@@ -14,4 +14,5 @@ export default {
   activeTintColor: '#25D366',
   warningColor: '#FABE58',
   dangerColor: '#F22613',
+  badgeBackgroundColor: '#25D366',
 };

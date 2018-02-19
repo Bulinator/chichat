@@ -75,8 +75,27 @@ const styles = StyleSheet.create({
     fontSize: 11,
     textAlign: 'right',
   },
-  groupUsername: {
-    paddingVertical: 4,
+  groupTextInnerContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    paddingRight: 6,
+    alignItems: 'center',
+  },
+  groupBadge: {
+    borderRadius: 20,
+    backgroundColor: Color.badgeBackgroundColor,
+    justifyContent: 'center',
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+  },
+  groupBadgeText: {
+    color: Color.txtDefaultColor,
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
+  column: {
+    flex: 1,
+    flexDirection: 'column',
   },
 });
 
@@ -93,7 +112,7 @@ class Group extends Component {
   }
 
   render() {
-    const { id, name, messages } = this.props.group;
+    const { id, name, messages, unreadCount } = this.props.group;
 
     return (
       <TouchableHighlight key={id} onPress={this.goToMessages}>
@@ -113,17 +132,29 @@ class Group extends Component {
               </Text>
             </View>
 
-            <Text style={styles.groupUsername}>
-              {messages.edges.length ?
-                `${messages.edges[0].node.from.username}:` : ''
+            <View style={styles.groupTextInnerContainer}>
+              <View style={styles.column}>
+                <Text style={styles.groupUsername}>
+                  {messages.edges.length ?
+                    `${messages.edges[0].node.from.username}:` : ''
+                  }
+                </Text>
+                <Text style={styles.groupText} numberOfLines={1}>
+                  {messages.edges.length ?
+                    messages.edges[0].node.text : ''
+                  }
+                </Text>
+              </View>
+              {unreadCount ?
+                <TouchableHighlight>
+                  <View style={styles.groupBadge}>
+                    <Text style={styles.groupBadgeText}>
+                      {unreadCount}
+                    </Text>
+                  </View>
+                </TouchableHighlight> : undefined
               }
-            </Text>
-
-            <Text style={styles.groupText} numberOfLines={1}>
-              {messages.edges.length ?
-                messages.edges[0].node.text : ''
-              }
-            </Text>
+            </View>
           </View>
           <Icon
             name="angle-double-right"
@@ -177,7 +208,10 @@ class GroupsScreen extends Component {
     this.onRefresh = this.onRefresh.bind(this);
   }
 
-  keyExtractor = item => item.id;
+  onRefresh() {
+    this.props.refetch();
+    // faking unauthorized status
+  }
 
   goToMessages = (group) => {
     const { navigate } = this.props.navigation;
@@ -191,10 +225,7 @@ class GroupsScreen extends Component {
     navigate('NewGroup');
   }
 
-  onRefresh() {
-    this.props.refetch();
-    // faking unauthorized status
-  }
+  keyExtractor = item => item.id;
 
   renderItem = ({ item }) => <Group group={item} goToMessages={this.goToMessages} />;
 

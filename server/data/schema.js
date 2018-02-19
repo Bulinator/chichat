@@ -21,6 +21,7 @@ export const Schema = [`
   input UpdateGroupInput {
     id: Int!
     name: String
+    lastRead: Int
     userIds: [Int!]
   }
 
@@ -66,6 +67,8 @@ export const Schema = [`
     users: [User]! # users in the group
     # messages: [Message] # messages sent to the group
     messages(first: Int, after: String, last: Int, before: String): MessageConnection
+    lastRead: Message # message last read by user
+    unreadCount: Int # number of unread messages by user
   }
 
   # user entity
@@ -108,7 +111,7 @@ export const Schema = [`
     createGroup(group: CreateGroupInput!): Group
     deleteGroup(id: Int!): Group
     leaveGroup(id: Int!): Group
-    updateGroup(id: Int!, name: String!): Group
+    updateGroup(group: UpdateGroupInput!): Group
     login(user: SigninUserInput!): User
     signup(user: SigninUserInput!): User
   }
