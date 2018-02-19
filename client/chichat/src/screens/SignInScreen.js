@@ -223,7 +223,7 @@ const login = graphql(LOGIN_MUTATION, {
   props: ({ mutate }) => ({
     login: user =>
       mutate({
-        variables: user,
+        variables: { user },
       }),
   }),
 });

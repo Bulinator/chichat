@@ -1,5 +1,6 @@
+import { Permissions, Notifications } from 'expo';
 import React, { Component } from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text, AsyncStorage } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import {
@@ -26,6 +27,7 @@ import SettingsScreen from '../src/screens/SettingsScreen';
 import { USER_QUERY } from '../src/graphql/User.query';
 import GROUP_ADDED_SUBSCRIPTION from '../src/graphql/GroupAdded.subscription';
 import MESSAGE_ADDED_SUBSCRIPTION from '../src/graphql/MessageAdded.subscription';
+import UPDATE_USER_MUTATION from '../src/graphql/UpdateUser.mutation';
 
 import { wsClient } from '../App';
 
@@ -128,6 +130,8 @@ const AppWithNavigationState = ({ dispatch, nav }) => (
 
 class AppWithNavigationState extends Component {
   componentWillReceiveProps(nextProps) {
+    // when we get the user, start listening for notifications
+
     if (!nextProps.user) {
       if (this.groupSubscription) {
         this.groupSubscription();
@@ -162,6 +166,11 @@ class AppWithNavigationState extends Component {
     if (!this.groupSubscription && nextProps.user) {
       this.groupSubscription = nextProps.subscribeToGroups();
     }
+  }
+
+  getPushtoken = async () => {
+    let { status } = await Permissions.askAsync(Permissions.REMOTE_NOTIFICATIONS);
+    console.log('status: ', status);
   }
 
   render() {
@@ -255,8 +264,18 @@ const userQuery = graphql(USER_QUERY, {
   }),
 });
 
+const updateUserMutation = graphql(UPDATE_USER_MUTATION, {
+  props: ({ mutate }) => ({
+    updateUser: user =>
+      mutate({
+        variables: { user },
+      }),
+  }),
+});
+
 // Connect AppWithNavitationState to Redux!
 export default compose(
   connect(mapStateToProps),
   userQuery,
+  updateUserMutation,
 )(AppWithNavigationState);

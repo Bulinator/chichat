@@ -1,4 +1,6 @@
+import { map, compact, reject } from 'lodash';
 import { Group, Message, User } from './connectors';
+import { sendNotification } from '../notifications';
 
 // reusable function to check for a user with context
 function getAuthenticatedUser(ctx) {
@@ -26,13 +28,42 @@ export const messageLogic = {
   createMessage(_, createMessageInput, ctx) {
     const { text, groupId } = createMessageInput.message;
     return getAuthenticatedUser(ctx)
-      .then(user => user.getGroups({ where: { id: groupId }, attributes: ['id'] })
-        .then((group) => {
-          if (group.length) {
+      .then(user => user.getGroups({ where: { id: groupId } })
+        .then((groups) => {
+          if (groups.length) {
             return Message.create({
               userId: user.id,
               text,
               groupId,
+            }).then((message) => {
+              const group = groups[0];
+              group.getUsers({ attributes: ['id', 'registrationId'] }).then((users) => {
+                const registration_ids = compact(map(reject(users, ['id', user.id]), 'registrationId'));
+                console.log('registration_ids: ', registration_ids);
+                if (registration_ids.length) {
+                  sendNotification({
+                    registration_ids,
+                    notification: {
+                      title: `${user.username} @ ${group.name}`,
+                      body: text,
+                      sound: 'default', // can use custom sounds -- see https://developer.apple.com/library/content/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/SupportingNotificationsinYourApp.html#//apple_ref/doc/uid/TP40008194-CH4-SW10
+                      click_action: 'openGroup',
+                    },
+                    data: {
+                      title: `${user.username} @ ${group.name}`,
+                      body: text,
+                      type: 'MESSAGE_ADDED',
+                      group: {
+                        id: group.id,
+                        name: group.name,
+                      },
+                    },
+                    priority: 'high', // will wake sleeping device
+                  });
+                }
+              });
+
+              return message;
             });
           }
           return Promise.reject(new Error('Unauthorized'));
@@ -129,15 +160,6 @@ export const groupLogic = {
           },
         });
       });
-  },
-  registrationId(user, args, ctx) {
-    return getAuthenticatedUser(ctx).then((currentUser) => {
-      if (currentUser.id === user.id) {
-        return currentUser.registrationId;
-      }
-
-      return Promise.reject(new Error('Unauthorized'));
-    });
   },
   query(_, { id }, ctx) {
     return getAuthenticatedUser(ctx).then(user => Group.findOne({
@@ -283,6 +305,15 @@ export const userLogic = {
       });
     });
   },
+  registrationId(user, args, ctx) {
+    return getAuthenticatedUser(ctx).then((currentUser) => {
+      if (currentUser.id === user.id) {
+        return currentUser.registrationId;
+      }
+
+      return Promise.reject(new Error('Unauthorized'));
+    });
+  },
   query(_, args, ctx) {
     return getAuthenticatedUser(ctx).then((user) => {
       if (user.id === args.id || user.email === args.email) {
@@ -314,14 +345,14 @@ export const subscriptionLogic = {
   messageAdded(baseParams, args, ctx) {
     return getAuthenticatedUser(ctx)
       .then(user => user.getGroups({ where: { id: { $in: args.groupIds } }, attributes: ['id'] })
-      .then((groups) => {
-        // user attempted to subscribe to some groups without access
-        if (args.groupIds.length > groups.length) {
-          return Promise.reject('Unauthorized');
-        }
+        .then((groups) => {
+          // user attempted to subscribe to some groups without access
+          if (args.groupIds.length > groups.length) {
+            return Promise.reject('Unauthorized');
+          }
 
-        baseParams.context = ctx;
-        return baseParams;
-      }));
+          baseParams.context = ctx;
+          return baseParams;
+        }));
   },
 };
