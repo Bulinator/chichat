@@ -17,11 +17,31 @@ export const Schema = [`
     text: String!
   }
 
+  # input for updating groups => @to do
+  input UpdateGroupInput {
+    id: Int!
+    name: String
+    userIds: [Int!]
+  }
+
   # input for signing in users
   input SigninUserInput {
     email: String!
     password: String!
     username: String
+  }
+
+  # input for updating users
+  input UpdateUserInput {
+    username: String
+  }
+
+  # input for relay cursor connections
+  input ConnectionInput {
+    first: Int
+    after: String
+    last: Int
+    before: String
   }
 
   type MessageConnection {
