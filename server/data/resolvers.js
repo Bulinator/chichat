@@ -58,9 +58,6 @@ export const Resolvers = {
     updateGroup(_, args, ctx) {
       return groupLogic.updateGroup(_, args, ctx);
     },
-    updateUser(_, args, ctx) {
-      return groupLogic.updateUser(_, args, ctx);
-    },
     login(_, signinUserInput, ctx) {
       const { email, password } = signinUserInput.user;
       // find userByEmail

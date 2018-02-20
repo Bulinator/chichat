@@ -2,8 +2,8 @@ import gql from 'graphql-tag';
 
 import GROUP_FRAGMENT from './Group.fragment';
 
-export const GROUP_QUERY = gql`
-  query group($groupId: Int!, $messageConnection: ConnectionInput) {
+const GROUP_QUERY = gql`
+  query group($groupId: Int!, $messageConnection: ConnectionInput = {first: 1}) {
     group(id: $groupId) {
       ... GroupFragment
     }

@@ -1,6 +1,5 @@
-import { Permissions, Notifications } from 'expo';
 import React, { Component } from 'react';
-import { StyleSheet, View, Text, AsyncStorage } from 'react-native';
+import { StyleSheet, View, Text, AppState } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import {
@@ -129,10 +128,17 @@ const AppWithNavigationState = ({ dispatch, nav }) => (
 */
 
 class AppWithNavigationState extends Component {
+  state = { appState: AppState.currentState };
+
+  componentWillMount() {
+    AppState.addEventListener('change', this.handleAppStateChange);
+  }
+
   componentWillReceiveProps(nextProps) {
     // when we get the user, start listening for notifications
     if (nextProps.user && !this.props.user) {
-      console.log("here get token");
+      // here notification but not clear for me at this time
+      // on how to do it with Expo notifications
     }
 
     if (!nextProps.user) {
@@ -175,35 +181,16 @@ class AppWithNavigationState extends Component {
     }
   }
 
+  componentWillUnmount() {
+    AppState.removeEventListener('change', this.handleAppStateChange);
+  }
 
-  getPushtoken = async () => {
-    let previousToken = await AsyncStorage.getItem('pushtoken');
-    if (previousToken) {
-      return;
-    }
-
-    const { status: existingStatus } = await Permissions.getAsync(Permissions.NOTIFICATIONS);
-    let finalStatus = existingStatus;
-
-    // only ask if permissions have not already been determined, because
-    // iOS won't necessarily prompt the user a second time.
-    if (existingStatus !== 'granted') {
-      // Android remote notification permissions are granted during the app
-      // install, so this will only ask on iOS
-      const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
-      finalStatus = status;
-    }
-
-    // Stop here if the user did not grant permissions
-    if (finalStatus !== 'granted') {
-      return;
-    }
-
-    // Get the token that uniquely identifies this device
-    let token = await Notifications.getExpoPushTokenAsync();
-    if (token) {
-      AsyncStorage.setItem('pushtoken', token);
-    }
+  handleAppStateChange = (nextAppState) => {
+    console.log('App has changed state!', nextAppState, this.props.user);
+    // here manage badge notification and update
+    // to do;;
+    
+    this.setState({ appState: nextAppState });
   }
 
   render() {
@@ -212,32 +199,36 @@ class AppWithNavigationState extends Component {
   }
 }
 
-
 AppWithNavigationState.propTypes = {
   dispatch: PropTypes.func.isRequired,
   nav: PropTypes.object.isRequired,
   refetch: PropTypes.func,
   subscribeToGroups: PropTypes.func,
   subscribeToMessages: PropTypes.func,
+  updateUser: PropTypes.func,
   user: PropTypes.shape({
     id: PropTypes.number.isRequired,
     email: PropTypes.string.isRequired,
-    groups: PropTypes.arrayOf(
-      PropTypes.shape({
-        id: PropTypes.number.isRequired,
-        name: PropTypes.string.isRequired,
-      }),
-    ),
+    registrationId: PropTypes.string,
+    badgeCount: PropTypes.number,
+    groups: PropTypes.arrayOf(PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      name: PropTypes.string.isRequired,
+    })),
   }),
 };
 
-const mapStateToProps = state => ({
-  nav: state.nav,
+// here is not correct, missing auth
+const mapStateToProps = ({ auth, nav }) => ({
+  auth,
+  nav,
 });
 
 const userQuery = graphql(USER_QUERY, {
-  skip: ownProps => true, // fake it -- we'll use ownProps with auth
-  options: () => ({ variables: { id: 1 } }), // fake the user for now
+  skip: ownProps => !ownProps.auth || !ownProps.auth.jwt,
+  options: ownProps => ({
+    variables: { id: ownProps.auth.id },
+  }), // fake the user for now // here buggy
   props: ({ data: { loading, user, subscribeToMore }, ownProps: { nav } }) => ({
     loading,
     user,

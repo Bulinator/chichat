@@ -27,6 +27,7 @@ const UserModel = db.define('user', {
   username: { type: Sequelize.STRING },
   password: { type: Sequelize.STRING },
   registrationId: { type: Sequelize.STRING }, // device registration for push notifications
+  badgeCount: { type: Sequelize.INTEGER }, // unread message for user
   version: { type: Sequelize.INTEGER },
 });
 
@@ -62,6 +63,7 @@ db.sync({ force: true }).then(() => _.times(GROUPS, () => GroupModel.create({
 }).then(group => _.times(USERS_PER_GROUP, () => {
   const password = 'test'; //faker.internet.password();
   return bcrypt.hash(password, 10).then(hash => group.createUser({
+    badgeCount: 0,
     email: faker.internet.email(),
     username: faker.internet.userName(),
     password: hash,

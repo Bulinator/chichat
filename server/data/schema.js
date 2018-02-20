@@ -34,6 +34,7 @@ export const Schema = [`
 
   # input for updating users
   input UpdateUserInput {
+    badgeCount: Int
     username: String
     registrationId: String
   }
@@ -80,6 +81,7 @@ export const Schema = [`
     messages: [Message] # message sent by user
     groups: [Group] # groups the user belongs to
     friends: [User] # users's friends/contact
+    badgeCount: Int # number of unread notifications
     jwt: String # json web token access
     registrationId: String
   }
